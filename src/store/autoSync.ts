@@ -1,5 +1,5 @@
 // autoSync.ts
-import useMindmapStore from "./useMindmapStore";
+import useMindmapStore from "@/store/useMindmapStore";
 import { saveMindmapToProject } from "./syncLogic";
 
 // Lắng nghe thay đổi nodes/edges và sync tự động

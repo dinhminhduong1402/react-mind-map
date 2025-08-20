@@ -35,7 +35,7 @@ export default function App() {
   
   const {nodes, setNodes} = useMindMapStore((state) => state.node);
   const {edges, setEdges} = useMindMapStore((state) => state.edge);
-  const {updateLayout} = useMindMapStore((state) => state.layout);
+  // const {updateLayout} = useMindMapStore((state) => state.layout);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null)
   const {currentProjectId, initProjects, getCurrentProject} = useProjectStore();
 
@@ -44,7 +44,7 @@ export default function App() {
   const onNodesChange = (changes: NodeChange<Node>[]) => {
     const updatedNodes = applyNodeChanges(changes, nodes);
     setNodes(updatedNodes);
-    updateLayout()
+    // updateLayout()
     
     // Lấy node đang được select
     // console.log({updatedNodes})
@@ -59,7 +59,7 @@ export default function App() {
   const onEdgesChange = (changes: EdgeChange<Edge>[]) => {
     const updatedEdges = applyEdgeChanges(changes, edges);
     setEdges(updatedEdges)
-    updateLayout()
+    // updateLayout()
 
     // sync vào project
     saveMindmapToProject();
@@ -76,7 +76,7 @@ export default function App() {
 
   useEffect(() => {
     // load projects
-    initProjects().then( () => updateLayout())
+    initProjects()
   }, [])
 
    // Khi switch project → load nodes/edges vào mindmap

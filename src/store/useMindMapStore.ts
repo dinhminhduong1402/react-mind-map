@@ -61,8 +61,9 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
 
       addChildNode: (selectedNode) => {
         const newNodeId = `node-${Date.now()}`;
+        // console.log({width: selectedNode.measured?.width})
         const childPosition = {
-          x: (selectedNode.position?.x || 0) + 200,
+          x: (selectedNode.position?.x || 0) + (selectedNode.measured?.width || 0) + 50,
           y: selectedNode.position?.y || 0,
         };
 
@@ -155,8 +156,6 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
           )
         );
 
-        get().layout.updateLayout()
-        
       },
       setNodes: (nodes) => {
         set((state) => ({ node: { ...state.node, nodes } }));
@@ -212,17 +211,20 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
       updateLayout: () => {
         const g = new dagre.graphlib.Graph();
         g.setGraph({
-          rankdir: "LR", // Left -> Right
-          nodesep: 60,
-          ranksep: 80,
+          rankdir: "LR",
+          nodesep: 50,   // khoảng cách ngang tối thiểu
+          ranksep: 100,  // khoảng cách dọc tối thiểu
         });
         g.setDefaultEdgeLabel(() => ({}));
 
         const { node, edge } = get();
 
-        // Khai báo node cho dagre
+        // Khai báo node cho dagre với kích thước thực tế
         node.nodes.forEach((n: Node) => {
-          g.setNode(n.id, { width: 100, height: 50 });
+          const nodeWidth = n.measured?.width || 150
+          const nodeHeight = n.measured?.height || 50
+
+          g.setNode(n.id, { width: nodeWidth, height: nodeHeight });
         });
 
         // Khai báo edge
@@ -230,24 +232,21 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
 
         dagre.layout(g);
 
-        // 📌 Tìm root node trong layout của dagre
         const rootId = "root";
         const dagreRootPos = g.node(rootId);
 
-        // 📌 Tính vị trí target cho root (x=50, y=center viewport - 80px topbar)
         const screenHeight = window.innerHeight;
         const targetRootPos = {
           x: 50,
           y: (screenHeight - 80) / 2,
         };
 
-        // 📌 Tính delta để dịch toàn bộ graph theo root
         const dx = targetRootPos.x - dagreRootPos.x;
         const dy = targetRootPos.y - dagreRootPos.y;
 
         const updatedNodes = node.nodes.map((n: Node) => {
           const pos = g.node(n.id);
-          if (!pos) return n; // tránh lỗi nếu dagre chưa tính node
+          if (!pos) return n;
 
           return {
             ...n,
@@ -265,6 +264,7 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
           },
         }));
       },
+    
     },
 
     toggleCollapse: (id: string) => {

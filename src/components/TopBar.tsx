@@ -133,7 +133,7 @@ export default function TopBar({ currentProject, selectedNode }: TopBarProps) {
           <span><kbd className="px-2 py-1 bg-gray-200 rounded">Delete/Backspace</kbd> → Xóa node</span>
           <span><kbd className="px-2 py-1 bg-gray-200 rounded">Crt+Z</kbd> → undo</span>
           <span><kbd className="px-2 py-1 bg-gray-200 rounded">Crt+Shift+Z</kbd> → redo</span>
-          {/* <span><kbd className="px-2 py-1 bg-gray-200 rounded">Crt+Shift+F</kbd> → Auto Format Layout</span> */}
+          <span><kbd className="px-2 py-1 bg-gray-200 rounded">Crt+Shift+F</kbd> → Auto Format Layout</span>
         </div>
       )}
 
