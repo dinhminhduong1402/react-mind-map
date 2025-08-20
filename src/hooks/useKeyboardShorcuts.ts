@@ -1,90 +1,12 @@
 import { useEffect } from "react";
-import { Node, Edge } from "@xyflow/react";
+import { Node } from "@xyflow/react";
 import useMindMapStore from "../store/useMindMapStore";
 
 export default function useKeyboardShortcuts(selectedNode: Node | null) {
-  const { nodes, setNodes, setcurrentActiveNodeId } = useMindMapStore(state => state.node);
+  const { nodes,  deleteNode, addChildNode, addSiblingNode } = useMindMapStore(state => state.node);
+  const { undo, redo } = useMindMapStore(state => state.history);
   const { updateLayout} = useMindMapStore(state => state.layout);
-  const { edges, setEdges } = useMindMapStore(state => state.edge);
-
-  // thêm node con
-  const addChildNode = () => {
-    if (!selectedNode) return;
-
-    const newNodeId = `node-${Date.now()}`;
-    const childPosition = {
-      x: (selectedNode.position?.x || 0) + 200,
-      y: selectedNode.position?.y || 0,
-    };
-
-    const newNode: Node = {
-      id: newNodeId,
-      type: "textUpdaterNode",
-      position: childPosition,
-      data: { content: "New child" },
-      selected: false,
-    };
-
-    const newEdge: Edge = {
-      id: `edge-${selectedNode.id}-${newNodeId}`,
-      source: selectedNode.id,
-      target: newNodeId,
-    };
-
-    setNodes([...nodes, newNode]);
-    setEdges([...edges, newEdge]);
-    setcurrentActiveNodeId(newNodeId);
-  };
-
-  // thêm node cùng cấp
-  const addSiblingNode = () => {
-    if (!selectedNode) return;
-
-    const newNodeId = `node-${Date.now()}`;
-    const siblingPosition = {
-      x: selectedNode.position?.x || 0,
-      y: (selectedNode.position?.y || 0) + 100,
-    };
-
-    const newNode: Node = {
-      id: newNodeId,
-      type: "textUpdaterNode",
-      position: siblingPosition,
-      data: { content: "New sibling" },
-      selected: false,
-    };
-
-    setNodes([...nodes, newNode]);
-    setcurrentActiveNodeId(newNodeId);
-
-    // tìm parent
-    const parentEdge = edges.find((e) => e.target === selectedNode.id);
-    if (parentEdge) {
-      const newEdge: Edge = {
-        id: `edge-${parentEdge.source}-${newNodeId}`,
-        source: parentEdge.source,
-        target: newNodeId,
-      };
-      setEdges([...edges, newEdge]);
-    }
-  };
-
-  // xóa node (trừ root)
-  const deleteNode = () => {
-    if (!selectedNode) return;
-    
-    if (selectedNode.id === "root") {
-      console.warn("⚠️ Không thể xóa node gốc (root)!");
-      return;
-    }
-
-    setNodes(nodes.filter((n) => n.id !== selectedNode.id));
-    setEdges(
-      edges.filter(
-        (e) => e.source !== selectedNode.id && e.target !== selectedNode.id
-      )
-    );
-  };
+  const { edges } = useMindMapStore(state => state.edge);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -93,28 +15,35 @@ export default function useKeyboardShortcuts(selectedNode: Node | null) {
         e.preventDefault(); 
         console.log("update layout")
         updateLayout()
-        
+      }
+
+      if (e.ctrlKey && e.key.toLowerCase() === "z") {
+        e.preventDefault(); 
+        console.log('Crt Z')
+        undo()
+      }
+
+      if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "z") {
+        e.preventDefault(); 
+        redo()
       }
       
       // need selectedNode
       if (!selectedNode) return;
 
       if (e.key === "Delete" || e.key === "Backspace") {
-        e.preventDefault();
-        deleteNode();
+        deleteNode(selectedNode.id);
       }
 
       if (e.key === "Tab") {
         e.preventDefault();
-        addChildNode();
+        addChildNode(selectedNode);
       }
 
       if (e.key === "Enter") {
         e.preventDefault();
-        addSiblingNode();
+        addSiblingNode(selectedNode);
       }
-
-      
     };
 
     window.addEventListener("keydown", handleKeyDown);
