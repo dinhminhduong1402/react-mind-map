@@ -11,13 +11,12 @@ import {
   Edge,
   ReactFlowProvider,
   NodeTypes,
-  // useReactFlow
 } from "@xyflow/react";
 
 import "@xyflow/react/dist/style.css";
 import useMindMapStore from "./store/useMindMapStore";
 import { TextUpdaterNode } from "./components/TextUpdaterNode";
-import { useEffect, useState, useLayoutEffect, use} from "react";
+import { useEffect, useState, useLayoutEffect} from "react";
 import { useUpdateEffect} from "ahooks";
 // import { useCallback } from "react";
 import './App.css';

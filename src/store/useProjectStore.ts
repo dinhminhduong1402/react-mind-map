@@ -1,7 +1,7 @@
 // useProjectStore.ts
 import { create } from 'zustand';
 import { saveProject, getAllProjects, deleteProject } from '@/helpers/indexDb';
-import { Node, Edge, Position } from '@xyflow/react';
+import { Node, Edge } from '@xyflow/react';
 
 export interface Project {
   project_id: string;
