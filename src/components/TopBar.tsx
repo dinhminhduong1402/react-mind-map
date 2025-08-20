@@ -111,7 +111,7 @@ export default function TopBar({ currentProject, selectedNode }: TopBarProps) {
           >
             Save Project
           </Button>
-          
+
           <Button variant="outline" onClick={() => setOpenModal(true)}>
             Quản lý Projects
           </Button>
@@ -131,6 +131,7 @@ export default function TopBar({ currentProject, selectedNode }: TopBarProps) {
           <span><kbd className="px-2 py-1 bg-gray-200 rounded">Enter</kbd> → Thêm node cùng cấp</span>
           <span><kbd className="px-2 py-1 bg-gray-200 rounded">Tab</kbd> → Thêm node con</span>
           <span><kbd className="px-2 py-1 bg-gray-200 rounded">Delete/Backspace</kbd> → Xóa node</span>
+          <span><kbd className="px-2 py-1 bg-gray-200 rounded">Crt+Shift+F</kbd> → Auto Format Layout</span>
         </div>
       )}
 

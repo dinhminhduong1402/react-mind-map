@@ -83,24 +83,51 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
     layout: {
       updateLayout: () => {
         const g = new dagre.graphlib.Graph();
-        g.setGraph({ 
-          rankdir: "LR" ,  // Left to Right (Horizontal layout)
-          nodesep: 150,    // khoảng cách ngang giữa node
-          ranksep: 100,    // khoảng cách dọc giữa các level
+        g.setGraph({
+          rankdir: "LR", // Left -> Right
+          nodesep: 100,
+          ranksep: 100,
         });
         g.setDefaultEdgeLabel(() => ({}));
 
         const { node, edge } = get();
-        node.nodes.forEach((node: Node) =>
-          g.setNode(node.id, { width: 100, height: 50 })
-        );
-        edge.edges.forEach((edge: Edge) => g.setEdge(edge.source, edge.target));
+
+        // Khai báo node cho dagre
+        node.nodes.forEach((n: Node) => {
+          g.setNode(n.id, { width: 100, height: 50 });
+        });
+
+        // Khai báo edge
+        edge.edges.forEach((e: Edge) => g.setEdge(e.source, e.target));
 
         dagre.layout(g);
 
-        const updatedNodes = node.nodes.map((node: Node) => {
-          const pos = g.node(node.id);
-          return { ...node, position: { x: pos.x, y: pos.y } };
+        // 📌 Tìm root node trong layout của dagre
+        const rootId = "root";
+        const dagreRootPos = g.node(rootId);
+
+        // 📌 Tính vị trí target cho root (x=50, y=center viewport - 80px topbar)
+        const screenHeight = window.innerHeight;
+        const targetRootPos = {
+          x: 50,
+          y: (screenHeight - 80) / 2,
+        };
+
+        // 📌 Tính delta để dịch toàn bộ graph theo root
+        const dx = targetRootPos.x - dagreRootPos.x;
+        const dy = targetRootPos.y - dagreRootPos.y;
+
+        const updatedNodes = node.nodes.map((n: Node) => {
+          const pos = g.node(n.id);
+          if (!pos) return n; // tránh lỗi nếu dagre chưa tính node
+
+          return {
+            ...n,
+            position: {
+              x: pos.x + dx,
+              y: pos.y + dy,
+            },
+          };
         });
 
         set((state) => ({
@@ -110,7 +137,6 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
           },
         }));
       },
-
     },
 
     toggleCollapse: (id: string) => {
@@ -130,25 +156,35 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
         });
 
         // hàm đệ quy để ẩn/hiện con cháu
-        const toggleChildren = (parentId: string, hidden: boolean) => {
+        const toggleChildren = (parentId: string, hiddenByParent: boolean) => {
           for (const e of state.edge.edges) {
             if (e.source === parentId) {
-              // Ẩn/hiện edge
-              edgesMap.set(e.id, { ...e, hidden });
-
-              // Ẩn/hiện node target
               const child = nodesMap.get(e.target);
-              if (child) {
-                nodesMap.set(e.target, { ...child, hidden });
+              if (!child) continue;
 
-                // nếu đang collapse thì ẩn cả con cháu của child
-                toggleChildren(e.target, hidden);
+              // Nếu cha đang collapse => ẩn luôn con
+              if (hiddenByParent) {
+                edgesMap.set(e.id, { ...e, hidden: true });
+                nodesMap.set(child.id, { ...child, hidden: true });
+
+                // Ẩn luôn con cháu
+                toggleChildren(child.id, true);
+              } else {
+                // Cha expand → chỉ hiện nếu child KHÔNG collapse
+                edgesMap.set(e.id, { ...e, hidden: false });
+                nodesMap.set(child.id, { ...child, hidden: false });
+
+                if (!child.data?.collapsed) {
+                  toggleChildren(child.id, false);
+                } else {
+                  // Child vẫn collapsed thì ẩn con cháu của nó
+                  toggleChildren(child.id, true);
+                }
               }
             }
           }
         };
 
-        // Nếu collapse thì ẩn con cháu, nếu expand thì hiện lại
         toggleChildren(id, newCollapsed);
 
         return {
@@ -164,6 +200,8 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
       });
     },
   };
+
+
 });
 
 export default useMindMapStore;

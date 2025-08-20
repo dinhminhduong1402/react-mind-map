@@ -82,19 +82,16 @@ export default function App() {
    // Khi switch project → load nodes/edges vào mindmap
   let currentProject = getCurrentProject();
   useUpdateEffect(() => {
-    const id =  addToast("Loaded project", "process");
-
-    
-    console.log({currentProjectId})
     if (currentProjectId) {
-      loadProjectToMindmap(currentProjectId);
-    }
+      const id = addToast("Loaded project", "process");
 
-    setTimeout(() => {
-      removeToast(id);
-      addToast("Loaded project", "success");
-    }, 500)
-    
+      loadProjectToMindmap(currentProjectId);
+
+      setTimeout(() => {
+        removeToast(id);
+        addToast("Loaded project", "success");
+      }, 500);
+    }
     currentProject = getCurrentProject()
   }, [currentProjectId]);
   

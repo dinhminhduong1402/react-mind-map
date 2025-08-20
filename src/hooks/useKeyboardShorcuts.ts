@@ -4,6 +4,7 @@ import useMindMapStore from "../store/useMindMapStore";
 
 export default function useKeyboardShortcuts(selectedNode: Node | null) {
   const { nodes, setNodes, setcurrentActiveNodeId } = useMindMapStore(state => state.node);
+  const { updateLayout} = useMindMapStore(state => state.layout);
   const { edges, setEdges } = useMindMapStore(state => state.edge);
 
   // thêm node con
@@ -87,6 +88,15 @@ export default function useKeyboardShortcuts(selectedNode: Node | null) {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // no need selected node
+      if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "f") {
+        e.preventDefault(); 
+        console.log("update layout")
+        updateLayout()
+        
+      }
+      
+      // need selectedNode
       if (!selectedNode) return;
 
       if (e.key === "Delete" || e.key === "Backspace") {
@@ -103,6 +113,8 @@ export default function useKeyboardShortcuts(selectedNode: Node | null) {
         e.preventDefault();
         addSiblingNode();
       }
+
+      
     };
 
     window.addEventListener("keydown", handleKeyDown);
