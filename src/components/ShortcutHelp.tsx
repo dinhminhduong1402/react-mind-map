@@ -12,11 +12,11 @@ export default function ShortcutBar() {
   ]
 
   return (
-    <div className="fixed top-1/2 right-4 -translate-y-1/2 flex flex-col items-center gap-2 z-100 shadow rounded">
+    <div className="fixed top-1/2 right-4 -translate-y-1/2 flex flex-col items-center gap-2 z-100 shadow rounded-full">
       <TooltipProvider>
           <Tooltip>
               <TooltipTrigger asChild>
-                <Button className="text-yellow-400 bg-transparent">{helpIcon}</Button>
+                <Button className="text-yellow-400 bg-transparent rounded-full">{helpIcon}</Button>
               </TooltipTrigger>
 
               <TooltipContent side="left" className="text-sm">

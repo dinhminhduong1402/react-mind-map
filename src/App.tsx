@@ -29,13 +29,14 @@ import TopBar from "@/components/TopBar";
 import ToastContainer from "@/components/ToastContainer";
 import ShortcutBar from "./components/ShortcutHelp";
 import { useToastStore } from "./store/useToastStore";
+// import { verify } from "crypto";
 
 const nodeTypes: NodeTypes = {textUpdaterNode: TextUpdaterNode}
 
 
 export default function App() {
   
-  const {nodes, setNodes} = useMindMapStore((state) => state.node);
+  const {nodes, setNodes, setcurrentActiveNodeId} = useMindMapStore((state) => state.node);
   const {edges, setEdges} = useMindMapStore((state) => state.edge);
   const {currentProjectId, initProjects, getCurrentProject} = useProjectStore();
 
@@ -45,6 +46,11 @@ export default function App() {
     const updatedNodes = applyNodeChanges(changes, nodes);
     setNodes(updatedNodes);
 
+    const selected = updatedNodes.find(n => n.selected)
+    if(selected) {
+      setcurrentActiveNodeId(selected.id)
+    }
+    
      // sync vào project
     saveMindmapToProject();
   };
@@ -65,6 +71,7 @@ export default function App() {
      const reactFlowPanel = document.querySelector('.react-flow__panel.react-flow__attribution')
       reactFlowPanel?.remove()
       console.log("removed")
+
   }, [])
 
   useEffect(() => {

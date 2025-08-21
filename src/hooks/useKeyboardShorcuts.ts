@@ -1,13 +1,11 @@
 import { useEffect } from "react";
 import useMindMapStore from "../store/useMindMapStore";
-import useEditingStore from "@/store/useEditingStore"
-
 
 export default function useKeyboardShortcuts() {
   
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      const { nodes, currentActiveNodeId, deleteNode, addChildNode, addSiblingNode, setcurrentActiveNodeId } = useMindMapStore.getState().node;
+      const { nodes, currentActiveNodeId, deleteNode} = useMindMapStore.getState().node;
 
       // no need selected node
       if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "f") {
@@ -39,22 +37,7 @@ export default function useKeyboardShortcuts() {
         deleteNode(selectedNode.id);
       }
 
-      if (e.key === "Tab") {
-        e.preventDefault();
-        const childNode = addChildNode(selectedNode);
-        const { setIsFocus } = useEditingStore.getState();
-        setIsFocus(childNode.id, true)
-      }
-
-      if (e.key === "Enter") {
-        // e.preventDefault();
-        setcurrentActiveNodeId(selectedNode.id)
-        const siblingNode = addSiblingNode(selectedNode);
-        if(siblingNode) {
-          const { setIsFocus } = useEditingStore.getState();
-          setIsFocus(siblingNode.id, true)
-        }
-      }
+      
     };
 
     window.addEventListener("keydown", handleKeyDown);

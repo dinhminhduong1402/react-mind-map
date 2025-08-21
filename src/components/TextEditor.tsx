@@ -12,7 +12,7 @@ export default function TailwindTextEditor({ id, text }: TextEditorProps) {
   const editorRef = useRef<HTMLInputElement>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
   const [showToolbar, setShowToolbar] = useState(false);
-  const {isEditing, setIsEditing, nodeId, isFocus} = useEditingStore();
+  const {isEditing, setIsEditing} = useEditingStore();
   const { updateNodeData } = useMindMapStore((state) => state.node);
 
   // Khởi tạo nội dung ban đầu cho editor
@@ -22,23 +22,6 @@ export default function TailwindTextEditor({ id, text }: TextEditorProps) {
     }
   }, [text]);
 
-
-  useEffect(() => {
-    if(id === nodeId && isFocus) {
-      const selectAllContent = () => {
-        if (editorRef.current) {
-          const range = document.createRange();
-          range.selectNodeContents(editorRef.current);
-
-          const selection = window.getSelection();
-          selection?.removeAllRanges();
-          selection?.addRange(range);
-        }
-    };
-    editorRef.current?.focus()
-    selectAllContent()
-    }
-  }, [isFocus])
 
   const handleDoubleClick = (e: MouseEvent) => {
     e.stopPropagation();
@@ -72,7 +55,10 @@ export default function TailwindTextEditor({ id, text }: TextEditorProps) {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    e.stopPropagation();
+    if(isEditing) {
+      e.stopPropagation();
+      console.log('stop here')
+    }
     setTimeout(() => {
         const selection = window.getSelection();
         if (selection && !selection.isCollapsed) {

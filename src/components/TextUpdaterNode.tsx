@@ -1,7 +1,8 @@
 import { Handle, Position, NodeProps } from "@xyflow/react";
-import { MouseEvent, useCallback, ReactNode } from "react";
+import { MouseEvent, useCallback, ReactNode, useEffect, useRef } from "react";
 import TextEditor from "./TextEditor";
 import useMindMapStore from "../store/useMindMapStore";
+import useEditingStore from '@/store/useEditingStore'
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { Circle , CircleCheckBig , Minus , Plus  } from "lucide-react";
 
@@ -34,10 +35,42 @@ export function TextUpdaterNode({ id, data, selected }: NodeProps) {
     toggleCompleted(id);
   }, [id, toggleCompleted]);
 
+  const nodeRef = useRef<HTMLDivElement>(null)
+  
+  const shortCuts = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    const {addChildNode, nodes, currentActiveNodeId, addSiblingNode} = useMindMapStore.getState().node
+    const selectedNode = nodes.find(n => n.id === currentActiveNodeId)
+    // console.log({selectedNode, currentActiveNodeId})
+    if(!selectedNode) return
+    
+    if (e.key === "Tab") {
+        e.preventDefault();
+        e.stopPropagation();
+        const childNode = addChildNode(selectedNode);
+        const { setIsFocus } = useEditingStore.getState();
+        setIsFocus(childNode.id, true)
+      }
+
+      if (e.key === "Enter") {
+        e.preventDefault();
+        e.stopPropagation();
+        const siblingNode = addSiblingNode(selectedNode);
+        if(siblingNode) {
+          const { setIsFocus } = useEditingStore.getState();
+          setIsFocus(siblingNode.id, true)
+        }
+      }
+  }
+
+  useEffect(() => {
+    // nodeRef.current?.parentElement?.addEventListener('keydown', shortCuts)
+    // return () => nodeRef.current?.parentElement?.removeEventListener('keydown', shortCuts)
+  }, [])
+
   return (
-    <>
+    <div ref={nodeRef} onKeyDown={shortCuts} tabIndex={0}>
       <Handle type="target" position={Position.Left} />
-      <div
+      <div 
         className={`
           rounded-lg p-3 transition-colors relative
           ${isRoot && selected ? "bg-yellow-200 border-2 border-orange-500 shadow-lg" : ""}
@@ -92,6 +125,6 @@ export function TextUpdaterNode({ id, data, selected }: NodeProps) {
       </div>
 
       <Handle type="source" position={Position.Right}  id="a"/>
-    </>
+    </div>
   );
 }
