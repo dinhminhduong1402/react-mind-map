@@ -44,11 +44,8 @@ export default function App() {
   const onNodesChange = (changes: NodeChange<Node>[]) => {
     const updatedNodes = applyNodeChanges(changes, nodes);
     setNodes(updatedNodes);
-    // updateLayout()
     
-    // Lấy node đang được select
-    // console.log({updatedNodes})
-    const selected = updatedNodes.find((n) => n.selected);
+    const selected = nodes.find((n) => n.selected);
     // console.log({selected})
     if(selected) {
       setcurrentActiveNodeId(selected.id);
