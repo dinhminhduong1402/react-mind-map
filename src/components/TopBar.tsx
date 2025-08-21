@@ -2,8 +2,7 @@ import { useEffect, useState } from "react";
 import { FolderKanban } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ProjectModal from "./ProjectModal"; // import modal
-import {Node, Edge} from '@xyflow/react'
-import useMindMapStore from "@/store/useMindMapStore";
+// import {Node} from '@xyflow/react'
 import {saveMindmapToProject} from '@/store/syncLogic'
 
 interface Project {
@@ -13,7 +12,6 @@ interface Project {
 
 interface TopBarProps {
   currentProject: Project | null;
-  selectedNode: Node | null
 }
 
 
@@ -27,40 +25,11 @@ const btnStyle: React.CSSProperties = {
   cursor: "pointer",
 };
 
-export default function TopBar({ currentProject, selectedNode }: TopBarProps) {
+export default function TopBar({ currentProject }: TopBarProps) {
   const [title, setTitle] = useState<string>("");
   const [openModal, setOpenModal] = useState(false);
-  const [showSubheader, setShowSubheader] = useState(true);
+  // const [showSubheader, setShowSubheader] = useState(true);
 
-  const {nodes, setNodes} = useMindMapStore((state) => state.node);
-  const {edges, setEdges} = useMindMapStore((state) => state.edge);
-
-  const handleAddChildNode = () => {
-    if (!selectedNode) return;
-
-    const newNodeId = `node-${Date.now()}`;
-    const childPosition = {
-      x: (selectedNode.position?.x || 0) + 200, // lệch sang phải
-      y: selectedNode.position?.y || 0,
-    };
-
-    const newNode: Node = {
-      id: newNodeId,
-      type: "textUpdaterNode",
-      position: childPosition,
-      data: { label: "New child" },
-    };
-
-    const newEdge: Edge = {
-      id: `edge-${selectedNode.id}-${newNodeId}`,
-      source: selectedNode.id,
-      target: newNodeId,
-    };
-
-    setNodes([...nodes, newNode]);
-    setEdges([...edges, newEdge]);
-  };
-  
   useEffect(() => {
     if (currentProject?.project_title) {
       setTitle(currentProject.project_title);
@@ -76,8 +45,7 @@ export default function TopBar({ currentProject, selectedNode }: TopBarProps) {
           fixed top-0 left-0 right-0 z-40
           bg-white 
           px-6 py-1 
-          flex items-center justify-between
-          ${showSubheader ? "" : "shadow-md"}
+          flex items-center justify-between shadow-md
         `}
       >
         {/* Project Info */}
@@ -89,22 +57,14 @@ export default function TopBar({ currentProject, selectedNode }: TopBarProps) {
         {/* Right side (menu, button mở modal) */}
         <div className="flex items-center gap-4">
           {/* ...existing buttons... */}
-          <Button
+          {/* <Button
             variant="outline"
             onClick={() => setShowSubheader((v) => !v)}
             style={{ ...btnStyle, background: "#f5f5f5", color: "#333" }}
           >
             {showSubheader ? "Ẩn phím tắt" : "Hiện phím tắt"}
-          </Button>
+          </Button> */}
           
-          <Button
-            onClick={handleAddChildNode}
-            disabled={!selectedNode}
-            style={{ ...btnStyle, background: "#007bff" }}
-          >
-            + Add Child
-          </Button>
-
           <Button
             onClick={() => saveMindmapToProject()}
             style={{ ...btnStyle, background: "green" }}
@@ -112,7 +72,7 @@ export default function TopBar({ currentProject, selectedNode }: TopBarProps) {
             Save Project
           </Button>
 
-          <Button variant="outline" onClick={() => setOpenModal(true)}>
+          <Button variant="outline" className="cursor-pointer" onClick={() => setOpenModal(true)}>
             Quản lý Projects
           </Button>
           
@@ -120,7 +80,7 @@ export default function TopBar({ currentProject, selectedNode }: TopBarProps) {
       </header>
 
       {/* Subheader hiển thị phím tắt */}
-      {showSubheader && (
+      {/* {showSubheader && (
         <div
           className="
             fixed top-[68px] left-0 right-0 z-30
@@ -135,7 +95,7 @@ export default function TopBar({ currentProject, selectedNode }: TopBarProps) {
           <span><kbd className="px-2 py-1 bg-gray-200 rounded">Crt+Shift+Z</kbd> → redo</span>
           <span><kbd className="px-2 py-1 bg-gray-200 rounded">Crt+Shift+F</kbd> → Auto Format Layout</span>
         </div>
-      )}
+      )} */}
 
       {/* Modal */}
       <ProjectModal isOpen={openModal} onClose={() => setOpenModal(false)} />

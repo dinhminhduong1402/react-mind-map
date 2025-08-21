@@ -54,7 +54,7 @@ export default function ProjectModal({ isOpen, onClose }: ProjectModalProps) {
             <div className="flex justify-between items-center px-6 py-4 border-b">
               <h2 className="text-lg font-semibold">Projects</h2>
               <button onClick={onClose}>
-                <X size={22} className="text-gray-600 hover:text-black" />
+                <X size={22} className="text-gray-600 hover:text-black cursor-pointer" />
               </button>
             </div>
 
@@ -125,7 +125,7 @@ export default function ProjectModal({ isOpen, onClose }: ProjectModalProps) {
               />
               <button
                 onClick={handleAdd}
-                className="bg-blue-600 text-white px-4 py-2 rounded flex items-center gap-1"
+                className="bg-blue-600 text-white px-4 py-2 rounded flex items-center gap-1 cursor-pointer"
               >
                 <Plus size={16} /> Add
               </button>

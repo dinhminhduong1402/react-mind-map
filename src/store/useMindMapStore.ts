@@ -9,8 +9,8 @@ interface MindMapState {
     addNode: () => void;
 
     
-    addSiblingNode: (selectedNode: Node) => void;
-    addChildNode: (selectedNode: Node) => void;
+    addSiblingNode: (selectedNode: Node) => Node | null;
+    addChildNode: (selectedNode: Node) => Node;
     
     
     deleteNode: (nodeId: string) => void;
@@ -51,7 +51,7 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
         redo: get().history.redo,
       },
     });
-    console.log({history: get().history})
+    // console.log({history: get().history})
   };
   
   return {
@@ -61,7 +61,7 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
       addNode: () => {},
 
       addChildNode: (selectedNode) => {
-        const newNodeId = `node-${Date.now()}`;
+        const newNodeId = `node-${crypto.randomUUID().toString()}`;
         // console.log({width: selectedNode.measured?.width})
         const childPosition = {
           x:
@@ -90,9 +90,14 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
         get().node.setNodes([...get().node.nodes, newNode]);
         get().edge.setEdges([...get().edge.edges, newEdge]);
         get().node.setcurrentActiveNodeId(newNodeId);
+
+        return newNode
       },
       addSiblingNode: (selectedNode) => {
-        const newNodeId = `node-${Date.now()}`;
+        if(selectedNode.id == 'root') return null
+        
+        // console.log({selectedNodeId: selectedNode.id})
+        const newNodeId = `node-${crypto.randomUUID().toString()}`;
         const siblingPosition = {
           x: selectedNode.position?.x || 0,
           y: (selectedNode.position?.y || 0) + 100,
@@ -103,7 +108,7 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
           type: "textUpdaterNode",
           position: siblingPosition,
           data: { content: "New sibling" },
-          selected: false,
+          selected: true,
         };
 
         saveHistory();
@@ -123,7 +128,10 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
           };
           get().edge.setEdges([...get().edge.edges, newEdge]);
         }
+
         get().node.setcurrentActiveNodeId(newNodeId);
+
+        return newNode
       },
 
       deleteNode: (nodeId) => {

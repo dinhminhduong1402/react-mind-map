@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect, MouseEvent } from 'react';
 import { FiBold, FiItalic, FiUnderline, FiAlignLeft, FiAlignCenter, FiAlignRight, FiList } from 'react-icons/fi';
 import useMindMapStore from '../store/useMindMapStore';
+import useEditingStore from '@/store/useEditingStore';
 
 type TextEditorProps = {
   id: string;
@@ -8,10 +9,10 @@ type TextEditorProps = {
 };
 
 export default function TailwindTextEditor({ id, text }: TextEditorProps) {
-  const editorRef = useRef<HTMLDivElement>(null);
+  const editorRef = useRef<HTMLInputElement>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
   const [showToolbar, setShowToolbar] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
+  const {isEditing, setIsEditing, nodeId, isFocus} = useEditingStore();
   const { updateNodeData } = useMindMapStore((state) => state.node);
 
   // Khởi tạo nội dung ban đầu cho editor
@@ -21,11 +22,29 @@ export default function TailwindTextEditor({ id, text }: TextEditorProps) {
     }
   }, [text]);
 
+
+  useEffect(() => {
+    if(id === nodeId && isFocus) {
+      const selectAllContent = () => {
+        if (editorRef.current) {
+          const range = document.createRange();
+          range.selectNodeContents(editorRef.current);
+
+          const selection = window.getSelection();
+          selection?.removeAllRanges();
+          selection?.addRange(range);
+        }
+    };
+    editorRef.current?.focus()
+    selectAllContent()
+    }
+  }, [isFocus])
+
   const handleDoubleClick = (e: MouseEvent) => {
     e.stopPropagation();
+    
     if (!isEditing) {
-      setIsEditing(true);
-      setTimeout(() => editorRef.current?.focus(), 0);
+      setIsEditing(id, true);
     }
   };
 
@@ -38,7 +57,7 @@ export default function TailwindTextEditor({ id, text }: TextEditorProps) {
       return;
     }
     updateNodeData({ id, content: editorRef.current?.innerHTML || '' });
-    setIsEditing(false);
+    setIsEditing(id, false);
     setShowToolbar(false);
   };
 

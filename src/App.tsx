@@ -16,16 +16,18 @@ import {
 import "@xyflow/react/dist/style.css";
 import useMindMapStore from "./store/useMindMapStore";
 import { TextUpdaterNode } from "./components/TextUpdaterNode";
-import { useEffect, useState, useLayoutEffect} from "react";
+import { useEffect, useLayoutEffect} from "react";
 import { useUpdateEffect} from "ahooks";
 // import { useCallback } from "react";
 import './App.css';
 import useKeyboardShortcuts from "./hooks/useKeyboardShorcuts";
 import { saveMindmapToProject, loadProjectToMindmap } from "@/store/syncLogic";
 import useProjectStore from "./store/useProjectStore";
+// import useEditingStore from "./store/useEditingStore";
 
 import TopBar from "@/components/TopBar";
 import ToastContainer from "@/components/ToastContainer";
+import ShortcutBar from "./components/ShortcutHelp";
 import { useToastStore } from "./store/useToastStore";
 
 const nodeTypes: NodeTypes = {textUpdaterNode: TextUpdaterNode}
@@ -33,10 +35,8 @@ const nodeTypes: NodeTypes = {textUpdaterNode: TextUpdaterNode}
 
 export default function App() {
   
-  const {nodes, setNodes} = useMindMapStore((state) => state.node);
+  const {nodes, setNodes, setcurrentActiveNodeId} = useMindMapStore((state) => state.node);
   const {edges, setEdges} = useMindMapStore((state) => state.edge);
-  // const {updateLayout} = useMindMapStore((state) => state.layout);
-  const [selectedNode, setSelectedNode] = useState<Node | null>(null)
   const {currentProjectId, initProjects, getCurrentProject} = useProjectStore();
 
   const {addToast, removeToast} = useToastStore()
@@ -50,7 +50,9 @@ export default function App() {
     // console.log({updatedNodes})
     const selected = updatedNodes.find((n) => n.selected);
     // console.log({selected})
-    setSelectedNode(selected || null);
+    if(selected) {
+      setcurrentActiveNodeId(selected.id);
+    }
 
      // sync vào project
     saveMindmapToProject();
@@ -66,7 +68,7 @@ export default function App() {
   };
 
    // hook phím tắt
-  useKeyboardShortcuts(selectedNode);
+  useKeyboardShortcuts();
 
   useLayoutEffect(() => {
      const reactFlowPanel = document.querySelector('.react-flow__panel.react-flow__attribution')
@@ -97,7 +99,7 @@ export default function App() {
   
   return (
     <div style={{ width: "100vw", height: "100vh" }}>
-      <TopBar currentProject={currentProject} selectedNode={selectedNode}/>
+      <TopBar currentProject={currentProject} />
       <div  style={{ width: "100vw", height: "100vh", paddingTop: "68px"}}>
         <ReactFlowProvider>
           <ReactFlow
@@ -117,6 +119,8 @@ export default function App() {
   
           </ReactFlow>
         </ReactFlowProvider>
+
+        <ShortcutBar/>
       </div>
       <ToastContainer/>
     </div>
