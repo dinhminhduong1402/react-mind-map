@@ -5,6 +5,18 @@
     { "path": "./tsconfig.node.json" }
   ],
   "compilerOptions": {
+    "jsx": "react-jsx",
+    "moduleResolution": "bundler", // nếu xài Vite/webpack mới
+    "types": ["node"],
+    "module": "esnext",
+    "target": "esnext",
+    "allowJs": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]

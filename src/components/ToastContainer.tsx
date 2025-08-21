@@ -1,3 +1,4 @@
+import { ReactNode } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToastStore } from "@/store/useToastStore";
 import { CheckCircle, XCircle, AlertTriangle, Loader } from "lucide-react";
@@ -5,7 +6,7 @@ import { CheckCircle, XCircle, AlertTriangle, Loader } from "lucide-react";
 export default function ToastContainer() {
   const { toasts, removeToast } = useToastStore();
 
-  const icons: Record<string, JSX.Element> = {
+  const icons: Record<string, ReactNode > = {
     success: <CheckCircle className="text-green-500" size={20} />,
     error: <XCircle className="text-red-500" size={20} />,
     warning: <AlertTriangle className="text-yellow-500" size={20} />,
