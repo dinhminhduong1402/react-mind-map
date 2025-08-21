@@ -35,7 +35,7 @@ const nodeTypes: NodeTypes = {textUpdaterNode: TextUpdaterNode}
 
 export default function App() {
   
-  const {nodes, setNodes, setcurrentActiveNodeId} = useMindMapStore((state) => state.node);
+  const {nodes, setNodes} = useMindMapStore((state) => state.node);
   const {edges, setEdges} = useMindMapStore((state) => state.edge);
   const {currentProjectId, initProjects, getCurrentProject} = useProjectStore();
 
@@ -44,12 +44,6 @@ export default function App() {
   const onNodesChange = (changes: NodeChange<Node>[]) => {
     const updatedNodes = applyNodeChanges(changes, nodes);
     setNodes(updatedNodes);
-    
-    const selected = nodes.find((n) => n.selected);
-    // console.log({selected})
-    if(selected) {
-      setcurrentActiveNodeId(selected.id);
-    }
 
      // sync vào project
     saveMindmapToProject();

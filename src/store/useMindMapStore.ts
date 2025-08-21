@@ -174,6 +174,11 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
       },
       setNodes: (nodes) => {
         set((state) => ({ node: { ...state.node, nodes } }));
+        const selected = get().node.nodes.find((n) => n.selected);
+        // console.log({selected})
+        if(selected) {
+          get().node.setcurrentActiveNodeId(selected.id);
+        }
       },
       setcurrentActiveNodeId: (nodeId) => {
         set((state) => ({

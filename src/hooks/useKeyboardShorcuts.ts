@@ -7,7 +7,7 @@ export default function useKeyboardShortcuts() {
   
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      const { nodes, currentActiveNodeId, deleteNode, addChildNode, addSiblingNode } = useMindMapStore.getState().node;
+      const { nodes, currentActiveNodeId, deleteNode, addChildNode, addSiblingNode, setcurrentActiveNodeId } = useMindMapStore.getState().node;
 
       // no need selected node
       if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "f") {
@@ -48,6 +48,7 @@ export default function useKeyboardShortcuts() {
 
       if (e.key === "Enter") {
         // e.preventDefault();
+        setcurrentActiveNodeId(selectedNode.id)
         const siblingNode = addSiblingNode(selectedNode);
         if(siblingNode) {
           const { setIsFocus } = useEditingStore.getState();
