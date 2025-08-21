@@ -29,6 +29,7 @@ interface MindMapState {
     updateLayout: () => void;
   };
   toggleCollapse: (id: string) => void;
+  toggleCompleted: (id: string) => void;
   history: {
     past: { nodes: Node[]; edges: Edge[] }[];
     future: { nodes: Node[]; edges: Edge[] }[];
@@ -63,7 +64,10 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
         const newNodeId = `node-${Date.now()}`;
         // console.log({width: selectedNode.measured?.width})
         const childPosition = {
-          x: (selectedNode.position?.x || 0) + (selectedNode.measured?.width || 0) + 50,
+          x:
+            (selectedNode.position?.x || 0) +
+            (selectedNode.measured?.width || 0) +
+            50,
           y: selectedNode.position?.y || 0,
         };
 
@@ -81,12 +85,11 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
           target: newNodeId,
         };
 
-        saveHistory()
-        
+        saveHistory();
+
         get().node.setNodes([...get().node.nodes, newNode]);
         get().edge.setEdges([...get().edge.edges, newEdge]);
         get().node.setcurrentActiveNodeId(newNodeId);
-        
       },
       addSiblingNode: (selectedNode) => {
         const newNodeId = `node-${Date.now()}`;
@@ -94,7 +97,7 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
           x: selectedNode.position?.x || 0,
           y: (selectedNode.position?.y || 0) + 100,
         };
-    
+
         const newNode: Node = {
           id: newNodeId,
           type: "textUpdaterNode",
@@ -103,13 +106,15 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
           selected: false,
         };
 
-        saveHistory()
-    
+        saveHistory();
+
         get().node.setNodes([...get().node.nodes, newNode]);
         get().node.setcurrentActiveNodeId(newNodeId);
-    
+
         // tìm parent
-        const parentEdge = get().edge.edges.find((e) => e.target === selectedNode.id);
+        const parentEdge = get().edge.edges.find(
+          (e) => e.target === selectedNode.id
+        );
         if (parentEdge) {
           const newEdge: Edge = {
             id: `edge-${parentEdge.source}-${newNodeId}`,
@@ -118,25 +123,26 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
           };
           get().edge.setEdges([...get().edge.edges, newEdge]);
         }
-        get().node.setcurrentActiveNodeId(newNodeId)
-        
+        get().node.setcurrentActiveNodeId(newNodeId);
       },
-      
+
       deleteNode: (nodeId) => {
-        if(!nodeId) return
+        if (!nodeId) return;
         if (nodeId === "root") {
           console.warn("⚠️ Không thể xóa node gốc (root)!");
           return;
         }
-        
+
         const nodesToDelete = new Set([nodeId]);
         const queue = [nodeId];
 
         while (queue.length > 0) {
           const parentId = queue.shift();
           // Tìm các cạnh có source là parentId
-          const childEdges = get().edge.edges.filter((e) => e.source === parentId);
-          
+          const childEdges = get().edge.edges.filter(
+            (e) => e.source === parentId
+          );
+
           // Thêm các node con vào danh sách xóa và hàng đợi
           childEdges.forEach((edge) => {
             if (!nodesToDelete.has(edge.target)) {
@@ -146,16 +152,17 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
           });
         }
 
-        saveHistory()
-        
-        get().node.setNodes(get().node.nodes.filter((n) => !nodesToDelete.has(n.id)))
+        saveHistory();
+
+        get().node.setNodes(
+          get().node.nodes.filter((n) => !nodesToDelete.has(n.id))
+        );
 
         get().edge.setEdges(
           get().edge.edges.filter(
             (e) => !nodesToDelete.has(e.source) && !nodesToDelete.has(e.target)
           )
         );
-
       },
       setNodes: (nodes) => {
         set((state) => ({ node: { ...state.node, nodes } }));
@@ -178,7 +185,7 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
       },
       updateNodeData: (updateData) => {
         const { id } = updateData;
-        saveHistory()
+        saveHistory();
         set((state) => {
           const updateNodes = state.node.nodes.map((n) => {
             if (n.id == id) {
@@ -212,8 +219,8 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
         const g = new dagre.graphlib.Graph();
         g.setGraph({
           rankdir: "LR",
-          nodesep: 50,   // khoảng cách ngang tối thiểu
-          ranksep: 100,  // khoảng cách dọc tối thiểu
+          nodesep: 50, // khoảng cách ngang tối thiểu
+          ranksep: 100, // khoảng cách dọc tối thiểu
         });
         g.setDefaultEdgeLabel(() => ({}));
 
@@ -221,8 +228,8 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
 
         // Khai báo node cho dagre với kích thước thực tế
         node.nodes.forEach((n: Node) => {
-          const nodeWidth = n.measured?.width || 150
-          const nodeHeight = n.measured?.height || 50
+          const nodeWidth = n.measured?.width || 150;
+          const nodeHeight = n.measured?.height || 50;
 
           g.setNode(n.id, { width: nodeWidth, height: nodeHeight });
         });
@@ -264,7 +271,6 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
           },
         }));
       },
-    
     },
 
     toggleCollapse: (id: string) => {
@@ -326,6 +332,30 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
           },
         };
       });
+    },
+    toggleCompleted: (nodeId) => {
+      
+      set((state) => ({
+        node: {
+          ...state.node,
+
+          nodes: state.node.nodes.map((node) => {
+            // Tìm node cần cập nhật bằng ID
+            if (node.id === nodeId) {
+              // Trả về một object node mới với thuộc tính 'data' được cập nhật
+              return {
+                ...node,
+                data: {
+                  ...node.data,
+                  completed: !node.data.completed, // Lật ngược giá trị của 'completed'
+                },
+              };
+            }
+            return node;
+          }),
+        },
+      }));
+
     },
 
     history: {
