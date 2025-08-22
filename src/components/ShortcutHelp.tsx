@@ -16,7 +16,7 @@ export default function ShortcutBar() {
       <TooltipProvider>
           <Tooltip>
               <TooltipTrigger asChild>
-                <Button className="text-yellow-400 bg-transparent rounded-full">{helpIcon}</Button>
+                <Button className="text-yellow-400 bg-white rounded-full">{helpIcon}</Button>
               </TooltipTrigger>
 
               <TooltipContent side="left" className="text-sm">

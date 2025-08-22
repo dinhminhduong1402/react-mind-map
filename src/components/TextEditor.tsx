@@ -1,19 +1,21 @@
-import { useRef, useState, useEffect, MouseEvent } from 'react';
+import { useRef, useState, useEffect, MouseEvent, useCallback } from 'react';
 import { FiBold, FiItalic, FiUnderline, FiAlignLeft, FiAlignCenter, FiAlignRight, FiList } from 'react-icons/fi';
 import useMindMapStore from '../store/useMindMapStore';
-import useEditingStore from '@/store/useEditingStore';
+import useKeyBoardManager from '@/core/useKeyBoardManger';
+// import useEditingStore from '@/store/useEditingStore';
 
 type TextEditorProps = {
   id: string;
   text?: string;
+  nodeData: object;
 };
 
-export default function TailwindTextEditor({ id, text }: TextEditorProps) {
+export default function TailwindTextEditor({ id, text, nodeData }: TextEditorProps) {
   const editorRef = useRef<HTMLInputElement>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
   const [showToolbar, setShowToolbar] = useState(false);
-  const {isEditing, setIsEditing} = useEditingStore();
-  const { updateNodeData } = useMindMapStore((state) => state.node);
+  const [isEditing, setIsEditing] = useState(false);
+  const { updateNodeData, currentActiveNodeId } = useMindMapStore((state) => state.node);
 
   // Khởi tạo nội dung ban đầu cho editor
   useEffect(() => {
@@ -23,13 +25,19 @@ export default function TailwindTextEditor({ id, text }: TextEditorProps) {
   }, [text]);
 
 
-  const handleDoubleClick = (e: MouseEvent) => {
+  useEffect(() => {
+    console.log('lasted isEditing: ', isEditing)
+  }, [isEditing])
+
+
+  const handleDoubleClick = useCallback((e: MouseEvent) => {
     e.stopPropagation();
     
     if (!isEditing) {
-      setIsEditing(id, true);
+      editorRef.current?.focus()
+      setIsEditing(true);
     }
-  };
+  }, [isEditing])
 
   const handleMouseDown = (e: MouseEvent) => {
     e.stopPropagation();
@@ -40,7 +48,7 @@ export default function TailwindTextEditor({ id, text }: TextEditorProps) {
       return;
     }
     updateNodeData({ id, content: editorRef.current?.innerHTML || '' });
-    setIsEditing(id, false);
+    setIsEditing(false);
     setShowToolbar(false);
   };
 
@@ -54,10 +62,24 @@ export default function TailwindTextEditor({ id, text }: TextEditorProps) {
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: KeyboardEvent) => {
+    console.log('keydown')
+    console.log({isEditing})
+
+    if(e.key === 'Tab') {
+      setIsEditing(false)
+      return -1
+    } // port ra ngoài tạo node mới
+
+    if(e.key === 'Enter' && !e.shiftKey) {
+      updateNodeData({ id, content: editorRef.current?.innerHTML || '' });
+      setIsEditing(false)
+      return 0
+    } // Cập nhật nội dung
+    
     if(isEditing) {
-      e.stopPropagation();
       console.log('stop here')
+      return 2
     }
     setTimeout(() => {
         const selection = window.getSelection();
@@ -67,7 +89,9 @@ export default function TailwindTextEditor({ id, text }: TextEditorProps) {
             setShowToolbar(false);
         }
     }, 50);
+    return -1
   }
+  const {onKeyDown} = useKeyBoardManager({handler: handleKeyDown, deps: [editorRef.current, isEditing]})
 
   const execCommand = (e: MouseEvent, command: string) => {
     e.stopPropagation();
@@ -94,6 +118,7 @@ export default function TailwindTextEditor({ id, text }: TextEditorProps) {
     };
     document.addEventListener('mousedown', handleClickOutside as unknown as EventListener);
     return () => document.removeEventListener('mousedown', handleClickOutside as unknown as EventListener);
+    
   }, []);
 
   return (
@@ -128,7 +153,7 @@ export default function TailwindTextEditor({ id, text }: TextEditorProps) {
         ref={editorRef}
         onMouseUp={handleMouseUp}
         onBlur={handleBlur}
-        onKeyDown={handleKeyDown}
+        onKeyDown={onKeyDown}
         contentEditable={isEditing}
         suppressContentEditableWarning
         className={`

@@ -1,10 +1,10 @@
 import { Handle, Position, NodeProps } from "@xyflow/react";
-import { MouseEvent, useCallback, ReactNode, useEffect, useRef } from "react";
+import { MouseEvent, useCallback, ReactNode, useRef } from "react";
 import TextEditor from "./TextEditor";
 import useMindMapStore from "../store/useMindMapStore";
-import useEditingStore from '@/store/useEditingStore'
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { Circle , CircleCheckBig , Minus , Plus  } from "lucide-react";
+import useKeyBoardManager from "@/core/useKeyBoardManger";
 
 const icons: Record<string, ReactNode > = {
   pending: <Circle className="text-gray-400" size={25} />,
@@ -37,38 +37,27 @@ export function TextUpdaterNode({ id, data, selected }: NodeProps) {
 
   const nodeRef = useRef<HTMLDivElement>(null)
   
-  const shortCuts = (e: React.KeyboardEvent<HTMLDivElement>) => {
+  const shortCuts = (e: React.KeyboardEvent<HTMLElement>) => {
     const {addChildNode, nodes, currentActiveNodeId, addSiblingNode} = useMindMapStore.getState().node
     const selectedNode = nodes.find(n => n.id === currentActiveNodeId)
     // console.log({selectedNode, currentActiveNodeId})
-    if(!selectedNode) return
+    if(!selectedNode) return -1
     
     if (e.key === "Tab") {
-        e.preventDefault();
-        e.stopPropagation();
-        const childNode = addChildNode(selectedNode);
-        const { setIsFocus } = useEditingStore.getState();
-        setIsFocus(childNode.id, true)
-      }
+      addChildNode(selectedNode);
+      return 0
+    }
 
-      if (e.key === "Enter") {
-        e.preventDefault();
-        e.stopPropagation();
-        const siblingNode = addSiblingNode(selectedNode);
-        if(siblingNode) {
-          const { setIsFocus } = useEditingStore.getState();
-          setIsFocus(siblingNode.id, true)
-        }
-      }
+    if (e.key === "Enter") {
+      addSiblingNode(selectedNode);
+      return 0
+    }
   }
 
-  useEffect(() => {
-    // nodeRef.current?.parentElement?.addEventListener('keydown', shortCuts)
-    // return () => nodeRef.current?.parentElement?.removeEventListener('keydown', shortCuts)
-  }, [])
+  const {onKeyDown} = useKeyBoardManager({handler: shortCuts, deps: [nodeRef.current]})
 
   return (
-    <div ref={nodeRef} onKeyDown={shortCuts} tabIndex={0}>
+    <div ref={nodeRef} tabIndex={-1} onKeyDown={onKeyDown}>
       <Handle type="target" position={Position.Left} />
       <div 
         className={`
@@ -121,7 +110,7 @@ export function TextUpdaterNode({ id, data, selected }: NodeProps) {
         )}
         
         {/* Nội dung editor */}
-        <TextEditor text={content} id={id} />
+        <TextEditor text={content} id={id} nodeData={data}/>
       </div>
 
       <Handle type="source" position={Position.Right}  id="a"/>
