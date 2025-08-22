@@ -2,7 +2,6 @@ import { useRef, useState, useEffect, MouseEvent, useCallback } from 'react';
 import { FiBold, FiItalic, FiUnderline, FiAlignLeft, FiAlignCenter, FiAlignRight, FiList } from 'react-icons/fi';
 import useMindMapStore from '../store/useMindMapStore';
 import useKeyBoardManager from '@/core/useKeyBoardManger';
-// import useEditingStore from '@/store/useEditingStore';
 
 type TextEditorProps = {
   id: string;
@@ -10,12 +9,12 @@ type TextEditorProps = {
   nodeData: object;
 };
 
-export default function TailwindTextEditor({ id, text, nodeData }: TextEditorProps) {
+export default function TailwindTextEditor({ id, text }: TextEditorProps) {
   const editorRef = useRef<HTMLInputElement>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
   const [showToolbar, setShowToolbar] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const { updateNodeData, currentActiveNodeId } = useMindMapStore((state) => state.node);
+  const { updateNodeData } = useMindMapStore((state) => state.node);
 
   // Khởi tạo nội dung ban đầu cho editor
   useEffect(() => {
@@ -62,7 +61,7 @@ export default function TailwindTextEditor({ id, text, nodeData }: TextEditorPro
     }
   };
 
-  const handleKeyDown = (e: KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     console.log('keydown')
     console.log({isEditing})
 
