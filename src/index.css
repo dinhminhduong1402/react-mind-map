@@ -9,3 +9,7 @@ body {
   height: 100vh;
 }
 
+
+.react-flow__handle.connectionindicator {
+  visibility: hidden !important;
+}

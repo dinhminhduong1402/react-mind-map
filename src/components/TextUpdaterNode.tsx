@@ -6,6 +6,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { Circle , CircleCheckBig , Minus , Plus  } from "lucide-react";
 import useKeyBoardManager from "@/core/useKeyBoardManger";
 
+
+
 const icons: Record<string, ReactNode > = {
   pending: <Circle className="text-gray-400" size={25} />,
   completed: <CircleCheckBig className="text-green-500"  size={25} />,
@@ -23,6 +25,21 @@ export function TextUpdaterNode({ id, data, selected }: NodeProps) {
   const toggleCompleted = useMindMapStore((s) => s.toggleCompleted);
 
   const isLeafNode = edges.findIndex(edge => edge.source === id) == -1
+
+  const getDepth = (nodeId: string): number => {
+    let depth = 0;
+    let currentId = nodeId;
+    while (currentId !== "root") {
+      const parentEdge = edges.find((e) => e.target === currentId);
+      if (!parentEdge) break;
+      currentId = parentEdge.source;
+      depth++;
+    }
+    return depth;
+  };
+  const depth = getDepth(id);
+  const isDeepNode = depth >= 2;
+  
 
   const handleToggle = useCallback((event: MouseEvent) => {
     event.preventDefault();
@@ -58,18 +75,17 @@ export function TextUpdaterNode({ id, data, selected }: NodeProps) {
       <Handle type="target" position={Position.Left} />
       <div 
         className={`
-          rounded-lg p-3 transition-colors relative
-          ${isRoot && selected ? "bg-yellow-200 border-2 border-orange-500 shadow-lg" : ""}
-          ${isRoot && !selected ? "bg-yellow-100 border-2 border-yellow-500 shadow-lg" : ""}
-          ${!isRoot && selected && !data?.completed ? "bg-blue-100 border-2 border-blue-500 shadow-md" : ""}
-          ${!isRoot && !selected && !data?.completed ? "bg-white border border-gray-300" : ""}
+          rounded-lg transition-colors relative
+          hover:border-blue-400 hover:shadow-md border-4
+          transition-all duration-200
 
-          ${data?.completed && !selected 
-            ? "bg-green-200 border-2 border-green-600" 
-            : ""}
-          ${data?.completed && selected 
-            ? "bg-blue-100 border-2 border-blue-500 shadow-md " 
-            : ""}
+          ${isRoot && selected ? "bg-yellow-200 border-2 border-orange-500 shadow-lg p-3" : ""}
+          ${isRoot && !selected ? "bg-yellow-100 border-2 border-yellow-500 shadow-lg p-3" : ""}
+          ${!isRoot && selected && !isDeepNode ? "bg-blue-100 border-4 border-blue-500 shadow-md p-2" : ""}
+          ${!isRoot && !selected && !isDeepNode ? "bg-blue-100 border-2 border-blue-300 p-2" : ""}
+
+          ${isDeepNode && !selected ? "bg-transparent border-transparent  px-2" : ""}
+          ${isDeepNode && selected ? "bg-blue-100 border-4 border-blue-500 shadow-md px-2" : ""}
         `}
       >
         {/* Nút collapse / expand */}

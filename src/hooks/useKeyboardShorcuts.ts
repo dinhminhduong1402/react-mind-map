@@ -5,7 +5,7 @@ export default function useKeyboardShortcuts() {
   
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      const { nodes, currentActiveNodeId, deleteNode, addChildNode, addSiblingNode, setcurrentFocusNodeId, addParentNode} = useMindMapStore.getState().node;
+      const { nodes, currentActiveNodeId, deleteNode, addChildNode, addSiblingNode, setcurrentFocusNodeId, addParentNode, moveLeft, moveRight, moveUp, moveDown} = useMindMapStore.getState().node;
 
       // no need selected node
       if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "f") {
@@ -57,6 +57,28 @@ export default function useKeyboardShortcuts() {
         setTimeout(() => setcurrentFocusNodeId(selectedNode.id), 0) // Force update - Tránh trường hợp currentFocusNodeId trước đó trùng với selected node id hiện tại (=>>>>>> Thật nghệ thuật)
         return 0
       }
+
+      if(e.key === 'ArrowLeft') {
+        console.log('move left')
+        moveLeft()
+        return 0
+      }
+      if(e.key === 'ArrowRight') {
+        console.log('move right')
+        moveRight()
+        return 0
+      }
+      if(e.key === 'ArrowUp') {
+        console.log('move up')
+        moveUp()
+        return 0
+      }
+      if(e.key === 'ArrowDown') {
+        console.log('move down')
+        moveDown()
+        return 0
+      }
+
 
       
     };

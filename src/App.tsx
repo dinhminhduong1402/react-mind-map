@@ -11,6 +11,7 @@ import {
   Edge,
   ReactFlowProvider,
   NodeTypes,
+  BackgroundVariant
 } from "@xyflow/react";
 
 import "@xyflow/react/dist/style.css";
@@ -38,6 +39,7 @@ export default function App() {
   
   const {nodes, setNodes, setcurrentActiveNodeId} = useMindMapStore((state) => state.node);
   const {edges, setEdges} = useMindMapStore((state) => state.edge);
+  const {updateLayout} = useMindMapStore((state) => state.layout);
   const {currentProjectId, initProjects, getCurrentProject} = useProjectStore();
 
   const {addToast, removeToast} = useToastStore()
@@ -50,6 +52,8 @@ export default function App() {
     if(selected) {
       setcurrentActiveNodeId(selected.id)
     }
+
+    updateLayout()
     
      // sync vào project
     saveMindmapToProject();
@@ -58,7 +62,7 @@ export default function App() {
   const onEdgesChange = (changes: EdgeChange<Edge>[]) => {
     const updatedEdges = applyEdgeChanges(changes, edges);
     setEdges(updatedEdges)
-    // updateLayout()
+    updateLayout()
 
     // sync vào project
     saveMindmapToProject();
@@ -113,7 +117,7 @@ export default function App() {
           >
             <Controls />
             <MiniMap />
-            <Background gap={12} size={1} />
+            <Background gap={12} size={1} variant={BackgroundVariant.Dots}/>
   
           </ReactFlow>
         </ReactFlowProvider>

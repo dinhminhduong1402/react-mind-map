@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import dagre from "dagre";
 import { Edge, Node } from "@xyflow/react";
 
 interface MindMapState {
@@ -24,6 +23,11 @@ interface MindMapState {
     setcurrentFocusNodeId: (nodeId: string | null) => void;
 
     updateNodeData: (data: Record<string, unknown>) => void;
+
+    moveLeft: () => void,
+    moveRight: () => void,
+    moveUp: () => void,
+    moveDown: () => void
   };
   edge: {
     edges: Edge[];
@@ -349,6 +353,117 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
           };
         });
       },
+
+
+      moveLeft: () => {
+        const { node, edge } = get();
+        const { currentActiveNodeId, setcurrentActiveNodeId } = node;
+        if (!currentActiveNodeId) return;
+
+        // tìm edge cha → con
+        const parentEdge = edge.edges.find(e => e.target === currentActiveNodeId);
+        if (parentEdge) {
+          setcurrentActiveNodeId(parentEdge.source);
+        }
+      },
+      moveRight: () => {
+        const { node, edge } = get();
+        const { currentActiveNodeId, setcurrentActiveNodeId } = node;
+        if (!currentActiveNodeId) return;
+
+        // tìm danh sách con
+        const childEdges = edge.edges.filter(e => e.source === currentActiveNodeId);
+        if (childEdges.length > 0) {
+          setcurrentActiveNodeId(childEdges[0].target); // con đầu tiên
+        }
+      },
+      moveUp: () => {
+        const { node, edge } = get();
+        const { currentActiveNodeId, setcurrentActiveNodeId } = node;
+        if (!currentActiveNodeId) return;
+
+        const parentEdge = edge.edges.find(e => e.target === currentActiveNodeId);
+        if (!parentEdge) return; // root không có cha
+        const parentId = parentEdge.source;
+
+        // danh sách anh em
+        const siblings = edge.edges
+          .filter(e => e.source === parentId)
+          .map(e => e.target);
+
+        const index = siblings.indexOf(currentActiveNodeId);
+
+        // có anh em phía trên
+        if (index > 0) {
+          setcurrentActiveNodeId(siblings[index - 1]);
+          return;
+        }
+
+        // nếu không có → tìm anh em họ (uncle) của cha
+        const grandParentEdge = edge.edges.find(e => e.target === parentId);
+        if (!grandParentEdge) return;
+
+        const grandParentId = grandParentEdge.source;
+        const uncles = edge.edges
+          .filter(e => e.source === grandParentId)
+          .map(e => e.target);
+
+        const parentIndex = uncles.indexOf(parentId);
+        if (parentIndex > 0) {
+          const uncleAbove = uncles[parentIndex - 1];
+          // nếu uncle có con → chọn con cuối
+          const cousins = edge.edges.filter(e => e.source === uncleAbove).map(e => e.target);
+          if (cousins.length > 0) {
+            setcurrentActiveNodeId(cousins[cousins.length - 1]);
+          } else {
+            setcurrentActiveNodeId(uncleAbove);
+          }
+        }
+      },
+      moveDown: () => {
+        const { node, edge } = get();
+        const { currentActiveNodeId, setcurrentActiveNodeId } = node;
+        if (!currentActiveNodeId) return;
+
+        const parentEdge = edge.edges.find(e => e.target === currentActiveNodeId);
+        if (!parentEdge) return;
+        const parentId = parentEdge.source;
+
+        // danh sách anh em
+        const siblings = edge.edges
+          .filter(e => e.source === parentId)
+          .map(e => e.target);
+
+        const index = siblings.indexOf(currentActiveNodeId);
+
+        // có anh em phía dưới
+        if (index < siblings.length - 1) {
+          setcurrentActiveNodeId(siblings[index + 1]);
+          return;
+        }
+
+        // nếu không có → tìm anh em họ phía dưới
+        const grandParentEdge = edge.edges.find(e => e.target === parentId);
+        if (!grandParentEdge) return;
+
+        const grandParentId = grandParentEdge.source;
+        const uncles = edge.edges
+          .filter(e => e.source === grandParentId)
+          .map(e => e.target);
+
+        const parentIndex = uncles.indexOf(parentId);
+        if (parentIndex < uncles.length - 1) {
+          const uncleBelow = uncles[parentIndex + 1];
+          const cousins = edge.edges.filter(e => e.source === uncleBelow).map(e => e.target);
+          if (cousins.length > 0) {
+            setcurrentActiveNodeId(cousins[0]); // con đầu tiên
+          } else {
+            setcurrentActiveNodeId(uncleBelow);
+          }
+        }
+      }
+      
+      
     },
     edge: {
       edges: [],
@@ -357,62 +472,100 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
       },
     },
     layout: {
+
       updateLayout: () => {
-        const g = new dagre.graphlib.Graph();
-        g.setGraph({
-          rankdir: "LR",
-          nodesep: 50, // khoảng cách ngang tối thiểu
-          ranksep: 100, // khoảng cách dọc tối thiểu
-        });
-        g.setDefaultEdgeLabel(() => ({}));
-
         const { node, edge } = get();
-
-        // Khai báo node cho dagre với kích thước thực tế
-        node.nodes.forEach((n: Node) => {
-          const nodeWidth = n.measured?.width || 150;
-          const nodeHeight = n.measured?.height || 50;
-
-          g.setNode(n.id, { width: nodeWidth, height: nodeHeight });
-        });
-
-        // Khai báo edge
-        edge.edges.forEach((e: Edge) => g.setEdge(e.source, e.target));
-
-        dagre.layout(g);
-
         const rootId = "root";
-        const dagreRootPos = g.node(rootId);
+        if (!node.nodes.find(n => n.id === rootId)) return;
 
-        const screenHeight = window.innerHeight;
-        const targetRootPos = {
-          x: 50,
-          y: (screenHeight - 80) / 2,
+        // Khoảng cách có thể chỉnh tuỳ UI
+        const LEFT = 50;        // lề trái cho root
+        const H_GAP = 120;      // khoảng cách ngang cha ↔ con
+        const V_GAP = 24;       // khoảng cách dọc giữa các subtree siblings
+        const DEFAULT_W = 150;  // fallback width nếu chưa đo
+        const DEFAULT_H = 50;   // fallback height nếu chưa đo
+
+        // Map nhanh id → node
+        const byId = new Map(node.nodes.map(n => [n.id, n]));
+
+        // Helper lấy size thực tế
+        const sizeOf = (id: string) => {
+          const n = byId.get(id);
+          const w = Math.max(1, n?.measured?.width ?? DEFAULT_W);
+          const h = Math.max(1, n?.measured?.height ?? DEFAULT_H);
+          return { w, h };
         };
 
-        const dx = targetRootPos.x - dagreRootPos.x;
-        const dy = targetRootPos.y - dagreRootPos.y;
-
-        const updatedNodes = node.nodes.map((n: Node) => {
-          const pos = g.node(n.id);
-          if (!pos) return n;
-
-          return {
-            ...n,
-            position: {
-              x: pos.x + dx,
-              y: pos.y + dy,
-            },
-          };
+        // Xây childrenMap, bỏ qua con nếu parent đang collapsed
+        const childrenMap: Record<string, string[]> = {};
+        edge.edges.forEach(e => {
+          const parent = byId.get(e.source);
+          if (parent?.data?.collapsed) return; // coi như không có con khi collapsed
+          (childrenMap[e.source] ??= []).push(e.target);
         });
 
-        set((state) => ({
-          node: {
-            ...state.node,
-            nodes: updatedNodes,
-          },
+        // Tính blockHeight (chiều cao subtree) bằng đệ quy + memo
+        const blockHeight = new Map<string, number>();
+        const calcBlock = (id: string): number => {
+          if (blockHeight.has(id)) return blockHeight.get(id)!;
+          const { h } = sizeOf(id);
+          const kids = childrenMap[id] ?? [];
+          if (kids.length === 0) {
+            blockHeight.set(id, h);
+            return h;
+          }
+          let sum = 0;
+          kids.forEach((cid, i) => {
+            sum += calcBlock(cid);
+            if (i < kids.length - 1) sum += V_GAP;
+          });
+          const total = Math.max(h, sum);
+          blockHeight.set(id, total);
+          return total;
+        };
+
+        const totalH = calcBlock(rootId);
+        const screenH = window.innerHeight;
+        const rootTop = Math.max((screenH - totalH) / 2, 20); // căn giữa dọc
+
+        // Đặt toạ độ: parent ở giữa block của nó; con bắt đầu ở top block hiện tại
+        const pos = new Map<string, { x: number; y: number }>();
+        const place = (id: string, left: number, top: number) => {
+          const { w, h } = sizeOf(id);
+          const myBlockH = blockHeight.get(id)!;
+
+          const x = left;                         // mép trái node
+          const y = top + (myBlockH - h) / 2;     // canh giữa theo block
+
+          pos.set(id, { x, y });
+
+          const kids = childrenMap[id] ?? [];
+          if (kids.length === 0) return;
+
+          let nextTop = top;
+          const childLeft = x + w + H_GAP;        // con luôn bên phải mép ngoài cha
+
+          kids.forEach((cid) => {
+            const chBlockH = blockHeight.get(cid)!;
+            place(cid, childLeft, nextTop);
+            nextTop += chBlockH + V_GAP;
+          });
+        };
+
+        place(rootId, LEFT, rootTop);
+
+        // Apply vị trí
+        const updatedNodes = node.nodes.map(n => {
+          const p = pos.get(n.id);
+          return p ? { ...n, position: { x: p.x, y: p.y } } : n;
+        });
+
+        set(state => ({
+          node: { ...state.node, nodes: updatedNodes }
         }));
-      },
+      }
+
+      
     },
 
     toggleCollapse: (id: string) => {

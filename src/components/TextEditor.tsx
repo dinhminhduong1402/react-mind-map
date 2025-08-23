@@ -201,7 +201,7 @@ export default function TailwindTextEditor({ id, text }: TextEditorProps) {
         tabIndex={-1} // Thêm tabindex để có thể focusable
         suppressContentEditableWarning
         className={`
-          ${isEditing ? 'nodrag border-blue-500 bg-white cursor-text' : 'border-gray-200 bg-gray-50 cursor-pointer'}
+          ${isEditing ? 'nodrag border-blue-500 bg-transparent cursor-text' : 'cursor-pointer'}
           p-3 min-h-[40px] rounded-lg text-base leading-snug outline-none transition-all
           hover:border-blue-500
         `}
