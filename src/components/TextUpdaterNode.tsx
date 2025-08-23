@@ -17,6 +17,7 @@ export function TextUpdaterNode({ id, data, selected }: NodeProps) {
   const content: string = data?.content ? String(data.content) : "";
   const isRoot = id === "root";
   
+
   const {edges} = useMindMapStore(state => state.edge)
   const toggleCollapse = useMindMapStore((s) => s.toggleCollapse);
   const toggleCompleted = useMindMapStore((s) => s.toggleCompleted);
@@ -38,22 +39,22 @@ export function TextUpdaterNode({ id, data, selected }: NodeProps) {
   const nodeRef = useRef<HTMLDivElement>(null)
   
   const shortCuts = (e: React.KeyboardEvent<HTMLElement>) => {
-    const {addChildNode, nodes, currentActiveNodeId, addSiblingNode} = useMindMapStore.getState().node
-    const selectedNode = nodes.find(n => n.id === currentActiveNodeId)
-    // console.log({selectedNode, currentActiveNodeId})
-    if(!selectedNode) return -1
+    console.log(e)
+    // const {nodes, currentActiveNodeId} = useMindMapStore.getState().node
+
+    // const selectedNode = nodes.find(n => n.id === currentActiveNodeId)
+    // if(!selectedNode) return -1
     
-    if (e.key === "Tab") {
-      addChildNode(selectedNode);
-      return 0
-    }
+    // if (e.key === "Tab") {
+    //   addChildNode(selectedNode);
+    //   return 0
+    // }
 
-    if (e.key === "Enter") {
-      addSiblingNode(selectedNode);
-      return 0
-    }
+    // if (e.key === "Enter") {
+    //   addSiblingNode(selectedNode);
+    //   return 0
+    // }
   }
-
   const {onKeyDown} = useKeyBoardManager({handler: shortCuts, deps: [nodeRef.current]})
 
   return (
@@ -110,7 +111,7 @@ export function TextUpdaterNode({ id, data, selected }: NodeProps) {
         )}
         
         {/* Nội dung editor */}
-        <TextEditor text={content} id={id} nodeData={data}/>
+        <TextEditor text={content} id={id} nodeData={data} />
       </div>
 
       <Handle type="source" position={Position.Right}  id="a"/>

@@ -19,6 +19,9 @@ interface MindMapState {
     getcurrentActiveNodeId: () => string | null;
     setcurrentActiveNodeId: (nodeId: string | null) => void;
 
+    currentFocusNodeId: string | null;
+    setcurrentFocusNodeId: (nodeId: string | null) => void;
+
     updateNodeData: (data: Record<string, unknown>) => void;
   };
   edge: {
@@ -57,6 +60,7 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
   return {
     node: {
       currentActiveNodeId: null, // Set the first node as active by default
+      currentFocusNodeId: null,
       nodes: [],
       addNode: () => {},
 
@@ -90,12 +94,13 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
         get().node.setNodes([...get().node.nodes, newNode]);
         get().edge.setEdges([...get().edge.edges, newEdge]);
         get().node.setcurrentActiveNodeId(newNodeId);
+        get().node.setcurrentFocusNodeId(newNodeId);
 
-        return newNode
+        return newNode;
       },
       addSiblingNode: (selectedNode) => {
-        if(selectedNode.id == 'root') return null
-        
+        if (selectedNode.id == "root") return null;
+
         // console.log({selectedNodeId: selectedNode.id})
         const newNodeId = `node-${crypto.randomUUID().toString()}`;
         const siblingPosition = {
@@ -130,8 +135,9 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
         }
 
         get().node.setcurrentActiveNodeId(newNodeId);
+        get().node.setcurrentFocusNodeId(newNodeId);
 
-        return newNode
+        return newNode;
       },
 
       deleteNode: (nodeId) => {
@@ -141,37 +147,81 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
           return;
         }
 
+        const { node, edge } = get()
+        const setCurrentActiveNodeId = node.setcurrentActiveNodeId
+        
+
+        // --- Tìm parent của node này
+        const parentEdge = edge.edges.find((e) => e.target === nodeId);
+        const parentId = parentEdge?.source || null;
+
+        // --- Tìm danh sách anh em (siblings)
+        const siblings = parentId
+          ? edge.edges
+              .filter((e) => e.source === parentId && e.target !== nodeId)
+              .map((e) => e.target)
+          : [];
+
+        // --- Tìm vị trí node trong danh sách nodes để tính "gần nhất"
+        let nextFocusId: string | null = null;
+        if (siblings.length > 0) {
+          const currentIndex = node.nodes.findIndex((n) => n.id === nodeId);
+
+          // Tìm anh em ngay bên trái
+          for (let i = currentIndex - 1; i >= 0; i--) {
+            if (siblings.includes(node.nodes[i].id)) {
+              nextFocusId = node.nodes[i].id;
+              break;
+            }
+          }
+
+          // Nếu không có anh em bên trái thì lấy anh em bên phải
+          if (!nextFocusId) {
+            for (let i = currentIndex + 1; i < node.nodes.length; i++) {
+              if (siblings.includes(node.nodes[i].id)) {
+                nextFocusId = node.nodes[i].id;
+                break;
+              }
+            }
+          }
+        }
+
+        // Nếu không tìm được sibling thì fallback về parent
+        if (!nextFocusId && parentId) {
+          nextFocusId = parentId;
+        }
+
+        // --- Bắt đầu xóa
         const nodesToDelete = new Set([nodeId]);
         const queue = [nodeId];
 
         while (queue.length > 0) {
-          const parentId = queue.shift();
-          // Tìm các cạnh có source là parentId
-          const childEdges = get().edge.edges.filter(
-            (e) => e.source === parentId
-          );
-
-          // Thêm các node con vào danh sách xóa và hàng đợi
-          childEdges.forEach((edge) => {
-            if (!nodesToDelete.has(edge.target)) {
-              nodesToDelete.add(edge.target);
-              queue.push(edge.target);
+          const parent = queue.shift();
+          const childEdges = edge.edges.filter((e) => e.source === parent);
+          childEdges.forEach((e) => {
+            if (!nodesToDelete.has(e.target)) {
+              nodesToDelete.add(e.target);
+              queue.push(e.target);
             }
           });
         }
 
         saveHistory();
 
-        get().node.setNodes(
-          get().node.nodes.filter((n) => !nodesToDelete.has(n.id))
-        );
+        node.setNodes(node.nodes.filter((n) => !nodesToDelete.has(n.id)));
 
-        get().edge.setEdges(
-          get().edge.edges.filter(
+        edge.setEdges(
+          edge.edges.filter(
             (e) => !nodesToDelete.has(e.source) && !nodesToDelete.has(e.target)
           )
         );
+
+        // --- Cuối cùng: focus node kế tiếp
+        if (nextFocusId) {
+          setCurrentActiveNodeId(nextFocusId);
+        }
       },
+
       setNodes: (nodes) => {
         set((state) => ({ node: { ...state.node, nodes } }));
       },
@@ -184,6 +234,21 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
               selected: n.id === nodeId,
             })),
             currentActiveNodeId: nodeId,
+          },
+        }));
+      },
+      setcurrentFocusNodeId: (nodeId) => {
+        set((state) => ({
+          node: {
+            ...state.node,
+            nodes: state.node.nodes.map((n) => ({
+              ...n,
+              data: {
+                ...n.data,
+                isFocus: n.id === nodeId,
+              },
+            })),
+            currentFocusNodeId: nodeId,
           },
         }));
       },
@@ -342,7 +407,6 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
       });
     },
     toggleCompleted: (nodeId) => {
-      
       set((state) => ({
         node: {
           ...state.node,
@@ -363,7 +427,6 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
           }),
         },
       }));
-
     },
 
     history: {

@@ -6,15 +6,28 @@ import useKeyBoardManager from '@/core/useKeyBoardManger';
 type TextEditorProps = {
   id: string;
   text?: string;
-  nodeData: object;
+  nodeData: Record<string, unknown>;
 };
+
+
+const selectContent = (el: HTMLElement | null) => {
+  if(!el) return
+  
+  const range = document.createRange();
+  range.selectNodeContents(el);
+
+  // Xóa selection cũ và add mới
+  const selection = window.getSelection();
+  selection?.removeAllRanges();
+  selection?.addRange(range);
+}
 
 export default function TailwindTextEditor({ id, text }: TextEditorProps) {
   const editorRef = useRef<HTMLInputElement>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
   const [showToolbar, setShowToolbar] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const { updateNodeData } = useMindMapStore((state) => state.node);
+  const { updateNodeData, currentFocusNodeId } = useMindMapStore((state) => state.node);
 
   // Khởi tạo nội dung ban đầu cho editor
   useEffect(() => {
@@ -22,21 +35,39 @@ export default function TailwindTextEditor({ id, text }: TextEditorProps) {
       editorRef.current.innerHTML = text;
     }
   }, [text]);
-
-
+  
   useEffect(() => {
-    console.log('lasted isEditing: ', isEditing)
-  }, [isEditing])
-
-
-  const handleDoubleClick = useCallback((e: MouseEvent) => {
-    e.stopPropagation();
+    if(currentFocusNodeId !== id) return
     
-    if (!isEditing) {
-      editorRef.current?.focus()
-      setIsEditing(true);
-    }
-  }, [isEditing])
+    const el = editorRef.current
+    if(!el) return
+
+    setIsEditing(true)
+    setShowToolbar(true)
+    setTimeout(() => {
+      el.focus()
+      selectContent(el)
+    }, 50)
+    
+  }, [currentFocusNodeId])
+
+
+  const handleDoubleClick = useCallback(
+    (e: MouseEvent) => {
+      e.stopPropagation();
+
+      if (!isEditing) {
+        const el = editorRef.current;
+        if (el) {
+          selectContent(el)
+          setIsEditing(true);
+          setShowToolbar(true);
+          setTimeout(() => el.focus(), 50) //push to callback queue
+        }
+      }
+    },
+    [isEditing]
+  );
 
   const handleMouseDown = (e: MouseEvent) => {
     e.stopPropagation();
@@ -62,24 +93,34 @@ export default function TailwindTextEditor({ id, text }: TextEditorProps) {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    console.log('keydown')
-    console.log({isEditing})
+    const el = editorRef.current
 
     if(e.key === 'Tab') {
       setIsEditing(false)
       return -1
     } // port ra ngoài tạo node mới
 
-    if(e.key === 'Enter' && !e.shiftKey) {
-      updateNodeData({ id, content: editorRef.current?.innerHTML || '' });
+    if(isEditing && e.key === 'Enter' && !e.shiftKey) {
+      updateNodeData({ id, content: el?.innerHTML || '' });
       setIsEditing(false)
+      setTimeout(() => el?.focus(), 50)
       return 0
     } // Cập nhật nội dung
     
+    console.log({
+      isEditing,
+      keydown: e.key,
+      content: el?.innerHTML
+    })
+    if(isEditing && (e.key === "Delete" || e.key === "Backspace") && (!el?.innerHTML || el?.innerHTML === '<br>')) {
+      console.log('aloo')
+      return -1 // port ra ngoài để xóa node
+    }
+    
     if(isEditing) {
-      console.log('stop here')
       return 2
     }
+    
     setTimeout(() => {
         const selection = window.getSelection();
         if (selection && !selection.isCollapsed) {
@@ -88,6 +129,7 @@ export default function TailwindTextEditor({ id, text }: TextEditorProps) {
             setShowToolbar(false);
         }
     }, 50);
+
     return -1
   }
   const {onKeyDown} = useKeyBoardManager({handler: handleKeyDown, deps: [editorRef.current, isEditing]})
@@ -154,6 +196,7 @@ export default function TailwindTextEditor({ id, text }: TextEditorProps) {
         onBlur={handleBlur}
         onKeyDown={onKeyDown}
         contentEditable={isEditing}
+        tabIndex={-1} // Thêm tabindex để có thể focusable
         suppressContentEditableWarning
         className={`
           ${isEditing ? 'nodrag border-blue-500 bg-white cursor-text' : 'border-gray-200 bg-gray-50 cursor-pointer'}
