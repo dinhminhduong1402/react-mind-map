@@ -241,13 +241,6 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
         set((state) => ({
           node: {
             ...state.node,
-            nodes: state.node.nodes.map((n) => ({
-              ...n,
-              data: {
-                ...n.data,
-                isFocus: n.id === nodeId,
-              },
-            })),
             currentFocusNodeId: nodeId,
           },
         }));
