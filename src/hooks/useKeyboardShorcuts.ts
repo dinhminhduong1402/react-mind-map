@@ -48,9 +48,8 @@ export default function useKeyboardShortcuts() {
       }
 
       if (e.key === 'F2') {
-        // 
-        console.log('f2')
-        setcurrentFocusNodeId(selectedNode.id)
+        setcurrentFocusNodeId('')
+        setTimeout(() => setcurrentFocusNodeId(selectedNode.id), 0) // Force update - Tránh trường hợp currentFocusNodeId trước đó trùng với selected node id hiện tại (=>>>>>> Thật nghệ thuật)
         return 0
       }
 

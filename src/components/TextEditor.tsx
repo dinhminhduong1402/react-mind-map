@@ -103,7 +103,9 @@ export default function TailwindTextEditor({ id, text }: TextEditorProps) {
     if(isEditing && e.key === 'Enter' && !e.shiftKey) {
       updateNodeData({ id, content: el?.innerHTML || '' });
       setIsEditing(false)
-      setTimeout(() => el?.focus(), 50)
+      setTimeout(() => {
+        el?.focus();
+      }, 50)
       return 0
     } // Cập nhật nội dung
     
