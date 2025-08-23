@@ -5,7 +5,7 @@ export default function useKeyboardShortcuts() {
   
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      const { nodes, currentActiveNodeId, deleteNode, addChildNode, addSiblingNode, setcurrentFocusNodeId} = useMindMapStore.getState().node;
+      const { nodes, currentActiveNodeId, deleteNode, addChildNode, addSiblingNode, setcurrentFocusNodeId, addParentNode} = useMindMapStore.getState().node;
 
       // no need selected node
       if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "f") {
@@ -37,8 +37,13 @@ export default function useKeyboardShortcuts() {
         deleteNode(selectedNode.id);
       }
 
-      if (e.key === "Tab") {
+      if (e.key === "Tab" && !e.shiftKey) {
         addChildNode(selectedNode);
+        return 0
+      }
+
+      if(e.shiftKey && e.key === 'Tab') {
+        addParentNode(selectedNode)
         return 0
       }
 

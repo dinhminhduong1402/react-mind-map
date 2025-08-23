@@ -11,6 +11,7 @@ interface MindMapState {
     
     addSiblingNode: (selectedNode: Node) => Node | null;
     addChildNode: (selectedNode: Node) => Node;
+    addParentNode: (selectedNode: Node) => Node;
     
     
     deleteNode: (nodeId: string) => void;
@@ -139,6 +140,81 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
 
         return newNode;
       },
+      addParentNode: (selectedNode) => {
+        const offsetX = 200; // khoảng cách dịch sang phải
+        const newNodeId = `node-${crypto.randomUUID().toString()}`;
+
+        const { node, edge } = get();
+
+        // Node mới xuất hiện ngay tại chỗ selectedNode
+        const newNode: Node = {
+          id: newNodeId,
+          type: "textUpdaterNode",
+          position: { ...selectedNode.position }, // giữ đúng vị trí của selected
+          data: { content: "New parent" },
+          selected: false,
+        };
+
+        // Edge parent mới -> selectedNode
+        const newEdge: Edge = {
+          id: `edge-${newNodeId}-${selectedNode.id}`,
+          source: newNodeId,
+          target: selectedNode.id,
+        };
+
+        saveHistory();
+
+        // --- 1. Dịch chuyển selectedNode và toàn bộ con cháu sang phải
+        const nodesToShift = new Set<string>();
+        const queue = [selectedNode.id];
+        while (queue.length > 0) {
+          const parentId = queue.shift()!;
+          nodesToShift.add(parentId);
+          const childEdges = edge.edges.filter((e) => e.source === parentId);
+          childEdges.forEach((e) => {
+            if (!nodesToShift.has(e.target)) {
+              queue.push(e.target);
+            }
+          });
+        }
+
+        const updatedNodes = node.nodes.map((n) => {
+          if (nodesToShift.has(n.id)) {
+            return {
+              ...n,
+              position: {
+                x: (n.position?.x || 0) + offsetX,
+                y: n.position?.y || 0,
+              },
+            };
+          }
+          return n;
+        });
+
+        // --- 2. Xử lý lại edges (nối oldParent -> newParent nếu cần)
+        const oldParentEdge = edge.edges.find((e) => e.target === selectedNode.id);
+        let updatedEdges = [...edge.edges, newEdge];
+
+        if (oldParentEdge) {
+          updatedEdges = updatedEdges.filter((e) => e !== oldParentEdge);
+          updatedEdges.push({
+            id: `edge-${oldParentEdge.source}-${newNodeId}`,
+            source: oldParentEdge.source,
+            target: newNodeId,
+          });
+        }
+
+        // --- 3. Cập nhật store
+        node.setNodes([...updatedNodes, newNode]);
+        edge.setEdges(updatedEdges);
+
+        // --- 4. Focus vào node mới
+        node.setcurrentActiveNodeId(newNodeId);
+        node.setcurrentFocusNodeId(newNodeId);
+
+        return newNode;
+      },
+
 
       deleteNode: (nodeId) => {
         if (!nodeId) return;
