@@ -39,21 +39,17 @@ export function TextUpdaterNode({ id, data, selected }: NodeProps) {
   const nodeRef = useRef<HTMLDivElement>(null)
   
   const shortCuts = (e: React.KeyboardEvent<HTMLElement>) => {
-    console.log(e)
-    // const {nodes, currentActiveNodeId} = useMindMapStore.getState().node
+    const {nodes, currentActiveNodeId, addSiblingNode} = useMindMapStore.getState().node
 
-    // const selectedNode = nodes.find(n => n.id === currentActiveNodeId)
-    // if(!selectedNode) return -1
+    const selectedNode = nodes.find(n => n.id === currentActiveNodeId)
+    if(!selectedNode) return -1
     
-    // if (e.key === "Tab") {
-    //   addChildNode(selectedNode);
-    //   return 0
-    // }
+    if (e.key === "Enter") { //Phải nghe nút enter ở phần tử con để chặn đi enter nổi ra ngoài phần conflic với enter của flutter flow
+      addSiblingNode(selectedNode);
+      return 0
+    }
 
-    // if (e.key === "Enter") {
-    //   addSiblingNode(selectedNode);
-    //   return 0
-    // }
+    return -1
   }
   const {onKeyDown} = useKeyBoardManager({handler: shortCuts, deps: [nodeRef.current]})
 
