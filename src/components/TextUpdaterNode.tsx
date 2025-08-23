@@ -23,6 +23,7 @@ export function TextUpdaterNode({ id, data, selected }: NodeProps) {
   const {edges} = useMindMapStore(state => state.edge)
   const toggleCollapse = useMindMapStore((s) => s.toggleCollapse);
   const toggleCompleted = useMindMapStore((s) => s.toggleCompleted);
+  const {updateLayout} = useMindMapStore((s) => s.layout);
 
   const isLeafNode = edges.findIndex(edge => edge.source === id) == -1
 
@@ -45,6 +46,7 @@ export function TextUpdaterNode({ id, data, selected }: NodeProps) {
     event.preventDefault();
     event.stopPropagation();
     toggleCollapse(id);
+    updateLayout()
   }, [id, toggleCollapse]);
 
   const handleCompleted = useCallback((event: MouseEvent) => {
@@ -79,10 +81,10 @@ export function TextUpdaterNode({ id, data, selected }: NodeProps) {
           hover:border-blue-400 hover:shadow-md border-4
           transition-all duration-200
 
-          ${isRoot && selected ? "bg-yellow-200 border-2 border-orange-500 shadow-lg p-3" : ""}
+          ${isRoot && selected ? "bg-yellow-200 border-2 border-blue-500 shadow-lg p-3" : ""}
           ${isRoot && !selected ? "bg-yellow-100 border-2 border-yellow-500 shadow-lg p-3" : ""}
           ${!isRoot && selected && !isDeepNode ? "bg-blue-100 border-4 border-blue-500 shadow-md p-2" : ""}
-          ${!isRoot && !selected && !isDeepNode ? "bg-blue-100 border-2 border-blue-300 p-2" : ""}
+          ${!isRoot && !selected && !isDeepNode ? "bg-gray-100 border-2 border-gray-300 p-2" : ""}
 
           ${isDeepNode && !selected ? "bg-transparent border-transparent  px-2" : ""}
           ${isDeepNode && selected ? "bg-blue-100 border-4 border-blue-500 shadow-md px-2" : ""}

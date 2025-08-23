@@ -48,12 +48,13 @@ export default function App() {
     const updatedNodes = applyNodeChanges(changes, nodes);
     setNodes(updatedNodes);
 
+    updateLayout()
     const selected = updatedNodes.find(n => n.selected)
     if(selected) {
       setcurrentActiveNodeId(selected.id)
+      
     }
 
-    updateLayout()
     
      // sync vào project
     saveMindmapToProject();

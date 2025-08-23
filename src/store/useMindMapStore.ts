@@ -1,17 +1,15 @@
 import { create } from "zustand";
-import { Edge, Node } from "@xyflow/react";
+import { Edge, Node} from "@xyflow/react";
 
 interface MindMapState {
   node: {
     nodes: Node[];
     setNodes: (nodes: Node[]) => void;
     addNode: () => void;
-
     
     addSiblingNode: (selectedNode: Node) => Node | null;
     addChildNode: (selectedNode: Node) => Node;
     addParentNode: (selectedNode: Node) => Node;
-    
     
     deleteNode: (nodeId: string) => void;
 
