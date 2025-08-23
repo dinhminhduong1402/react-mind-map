@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { FolderKanban } from "lucide-react";
+import { FolderKanban, Loader, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ProjectModal from "./ProjectModal"; // import modal
 // import {Node} from '@xyflow/react'
 import {saveMindmapToProject} from '@/store/syncLogic'
+import useProjectStore from "@/store/useProjectStore";
 
 interface Project {
   project_id: string | null;
@@ -14,20 +15,10 @@ interface TopBarProps {
   currentProject: Project | null;
 }
 
-
-const btnStyle: React.CSSProperties = {
-  padding: "6px 12px",
-  margin: "10px",
-  background: "#007bff",
-  color: "#fff",
-  border: "none",
-  borderRadius: "4px",
-  cursor: "pointer",
-};
-
 export default function TopBar({ currentProject }: TopBarProps) {
   const [title, setTitle] = useState<string>("");
   const [openModal, setOpenModal] = useState(false);
+  const {isSaving} = useProjectStore()
   // const [showSubheader, setShowSubheader] = useState(true);
 
   useEffect(() => {
@@ -42,41 +33,40 @@ export default function TopBar({ currentProject }: TopBarProps) {
     <>
       <header
         className={`
-          fixed top-0 left-0 right-0 z-40
+          fixed top-0 left-0 z-40 mt-0.5
           bg-white 
-          px-6 py-1 
-          flex items-center justify-between shadow-md
+          px-6 py-2
+          flex items-center justify-between shadow-lg rounded-4xl
         `}
       >
         {/* Project Info */}
-        <div className="flex items-center gap-2">
-          <FolderKanban className="text-blue-600" size={22} />
-          <h1 className="text-lg font-semibold text-gray-800">{title}</h1>
+        <div className="flex gap-3" onClick={() => setOpenModal(true)}>
+          <div className="flex items-center gap-2 cursor-pointer">
+            <FolderKanban className="text-yellow-500" size={28} />
+            <h1 className="text-lg font-semibold text-gray-800">{title}</h1>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <Button
+              onClick={() => saveMindmapToProject()}
+              // style={{ ...btnStyle, background: "green" }}
+              // variant='outline'
+              className="bg-transparent text-gray-800"
+              disabled
+            >
+              {
+                isSaving 
+                ? <Loader className="animate-spin"/>
+                : <CheckCircle/>
+              }
+              Auto Save
+            </Button>
+        </div>
+
         </div>
 
         {/* Right side (menu, button mở modal) */}
-        <div className="flex items-center gap-4">
-          {/* ...existing buttons... */}
-          {/* <Button
-            variant="outline"
-            onClick={() => setShowSubheader((v) => !v)}
-            style={{ ...btnStyle, background: "#f5f5f5", color: "#333" }}
-          >
-            {showSubheader ? "Ẩn phím tắt" : "Hiện phím tắt"}
-          </Button> */}
-          
-          <Button
-            onClick={() => saveMindmapToProject()}
-            style={{ ...btnStyle, background: "green" }}
-          >
-            Save Project
-          </Button>
-
-          <Button variant="outline" className="cursor-pointer" onClick={() => setOpenModal(true)}>
-            Quản lý Projects
-          </Button>
-          
-        </div>
+        
       </header>
 
       {/* Subheader hiển thị phím tắt */}

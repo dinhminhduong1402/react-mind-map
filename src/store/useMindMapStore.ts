@@ -285,7 +285,6 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
         }
 
         saveHistory();
-
         node.setNodes(node.nodes.filter((n) => !nodesToDelete.has(n.id)));
 
         edge.setEdges(

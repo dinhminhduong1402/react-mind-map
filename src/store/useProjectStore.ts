@@ -22,6 +22,9 @@ interface ProjectState {
   updateProject: (id: string, nodes: Node[], edges: Edge[]) => void;
   updateProjectTitle: (id: string, title: string) => void;
   removeProject: (id: string) => void;
+
+  isSaving: boolean,
+  setIsSaving: (value: boolean) => void
 }
 
 const defaultProject: Project = {
@@ -47,6 +50,10 @@ const LAST_PROJECT_ID_KEY = "mindmap-last-project-id";
 const useProjectStore = create<ProjectState>((set, get) => ({
   projects: [],
   currentProjectId: null,
+  isSaving: false,
+  setIsSaving: (value: boolean) => {
+    set(s => ({...s, isSaving: !!value}))
+  },
   loadProject: (id) => {
     set({ currentProjectId: id });
     localStorage.setItem(LAST_PROJECT_ID_KEY, id ?? "");

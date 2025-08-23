@@ -103,7 +103,7 @@ export default function App() {
   return (
     <div style={{ width: "100vw", height: "100vh" }}>
       <TopBar currentProject={currentProject} />
-      <div  style={{ width: "100vw", height: "100vh", paddingTop: "68px"}}>
+      <div  style={{ width: "100vw", height: "100vh"}}>
         <ReactFlowProvider>
           <ReactFlow
             nodes={nodes}
