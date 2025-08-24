@@ -1,75 +1,22 @@
-import {
-  ReactFlow,
-  MiniMap,
-  Controls,
-  Background,
-  applyEdgeChanges,
-  applyNodeChanges,
-  NodeChange,
-  Node,
-  EdgeChange,
-  Edge,
-  ReactFlowProvider,
-  NodeTypes,
-  BackgroundVariant,
-} from "@xyflow/react";
-
-import "@xyflow/react/dist/style.css";
 import './App.css';
-import useMindMapStore from "./store/useMindMapStore";
-import { TextUpdaterNode } from "./components/TextUpdaterNode";
-import { useEffect, useLayoutEffect} from "react";
+import { useEffect} from "react";
 import { useUpdateEffect} from "ahooks";
-import useKeyboardShortcuts from "./hooks/useKeyboardShorcuts";
-import { saveMindmapToProject, loadProjectToMindmap } from "@/store/syncLogic";
-import useProjectStore from "./store/useProjectStore";
 
 import TopBar from "@/components/TopBar";
 import ToastContainer from "@/components/ToastContainer";
 import ShortcutBar from "./components/ShortcutHelp";
-import { useToastStore } from "./store/useToastStore";
+import MindMap from "./components/Mindmap";
 
-const nodeTypes: NodeTypes = {textUpdaterNode: TextUpdaterNode}
+import { loadProjectToMindmap } from "@/store/syncLogic";
+import { useToastStore } from "./store/useToastStore";
+import useProjectStore from "./store/useProjectStore";
+import { ReactFlowProvider } from '@xyflow/react';
+
 
 export default function App() {
   
-  const {nodes, setNodes, setcurrentActiveNodeId} = useMindMapStore((state) => state.node);
-  const {edges, setEdges} = useMindMapStore((state) => state.edge);
-  const {updateLayout} = useMindMapStore((state) => state.layout);
   const {currentProjectId, initProjects, getCurrentProject} = useProjectStore();
-
   const {addToast, removeToast} = useToastStore()
-
-  const onNodesChange = (changes: NodeChange<Node>[]) => {
-    const updatedNodes = applyNodeChanges(changes, nodes);
-    setNodes(updatedNodes);
-
-    updateLayout()
-    const selected = updatedNodes.find(n => n.selected)
-    if(selected) {
-      setcurrentActiveNodeId(selected.id)
-    }
-     // sync vào project
-    saveMindmapToProject();
-  };
-
-  const onEdgesChange = (changes: EdgeChange<Edge>[]) => {
-    const updatedEdges = applyEdgeChanges(changes, edges);
-    setEdges(updatedEdges)
-    updateLayout()
-    // sync vào project
-    saveMindmapToProject();
-  };
-
-   // hook phím tắt
-  useKeyboardShortcuts();
-
-  useLayoutEffect(() => {
-     const reactFlowPanel = document.querySelector('.react-flow__panel.react-flow__attribution')
-      reactFlowPanel?.remove()
-      console.log("removed")
-
-  }, [])
 
   useEffect(() => {
     // load projects
@@ -96,25 +43,7 @@ export default function App() {
     <div style={{ width: "100vw", height: "100vh" }}>
       <TopBar currentProject={currentProject} />
       <div  style={{ width: "100vw", height: "100vh"}}>
-        <ReactFlowProvider>
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            // onConnect={onConnect}
-            nodeTypes={nodeTypes}
-            // nodesSelectable={true}
-            deleteKeyCode={[]}
-            fitView={false}
-          >
-            <Controls />
-            <MiniMap />
-            <Background gap={12} size={1} variant={BackgroundVariant.Dots}/>
-  
-          </ReactFlow>
-        </ReactFlowProvider>
-
+        <ReactFlowProvider><MindMap/></ReactFlowProvider>
         <ShortcutBar/>
       </div>
       <ToastContainer/>
