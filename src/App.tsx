@@ -11,6 +11,7 @@ import { loadProjectToMindmap } from "@/store/syncLogic";
 import { useToastStore } from "./store/useToastStore";
 import useProjectStore from "./store/useProjectStore";
 import { ReactFlowProvider } from '@xyflow/react';
+import useKeyboardShortcuts from './hooks/useKeyboardShorcuts';
 
 
 export default function App() {
@@ -22,6 +23,8 @@ export default function App() {
     // load projects
     initProjects()
   }, [])
+
+  useKeyboardShortcuts()
 
    // Khi switch project → load nodes/edges vào mindmap
   let currentProject = getCurrentProject();

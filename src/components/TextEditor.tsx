@@ -115,7 +115,6 @@ export default function TailwindTextEditor({ id, text }: TextEditorProps) {
       content: el?.innerHTML
     })
     if(isEditing && (e.key === "Delete" || e.key === "Backspace") && (!el?.innerHTML || el?.innerHTML === '<br>')) {
-      console.log('aloo')
       return -1 // port ra ngoài để xóa node
     }
     

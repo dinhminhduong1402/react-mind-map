@@ -1,5 +1,5 @@
-import { Handle, Position, NodeProps } from "@xyflow/react";
-import { MouseEvent, useCallback, ReactNode, useRef } from "react";
+import { Handle, Position, NodeProps, Edge } from "@xyflow/react";
+import { MouseEvent, useCallback, ReactNode, useRef, useMemo } from "react";
 import TextEditor from "./TextEditor";
 import useMindMapStore from "../store/useMindMapStore";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
@@ -10,8 +10,8 @@ import useKeyBoardManager from "@/core/useKeyBoardManger";
 
 const icons: Record<string, ReactNode > = {
   pending: <Circle className="text-gray-400" size={25} />,
-  completed: <CircleCheckBig className="text-green-500"  size={25} />,
-  minus: <Minus className="text-gray-500 bg-gray-100"  size={20} />,
+  completed: <CircleCheckBig className="text-gray-400"  size={25} />,
+  minus: <Minus className="bg-transparent"  size={20} />,
   plus: <Plus className="text-gray-500 bg-gray-100"  size={20} />,
 };
 
@@ -20,6 +20,7 @@ export function TextUpdaterNode({ id, data, selected }: NodeProps) {
   const isRoot = id === "root";
   
 
+  const {nodes} = useMindMapStore(state => state.node)
   const {edges} = useMindMapStore(state => state.edge)
   const toggleCollapse = useMindMapStore((s) => s.toggleCollapse);
   const toggleCompleted = useMindMapStore((s) => s.toggleCompleted);
@@ -72,22 +73,46 @@ export function TextUpdaterNode({ id, data, selected }: NodeProps) {
   }
   const {onKeyDown} = useKeyBoardManager({handler: shortCuts, deps: [nodeRef.current]})
 
+  const childNodesCount = useMemo(() => {
+    function getAllChildCount(parentId: string, edges: Edge[]): number {
+      const visited = new Set<string>()
+      const stack = [parentId]
+
+      while (stack.length > 0) {
+        const current = stack.pop()!
+
+        edges.forEach(edge => {
+          if (edge.source === current && !visited.has(edge.target)) {
+            visited.add(edge.target)
+            stack.push(edge.target)
+          }
+        })
+      }
+
+      return visited.size
+    }
+
+    return getAllChildCount(id, edges)
+  }, [nodes, edges])
+
   return (
     <div ref={nodeRef} tabIndex={-1} onKeyDown={onKeyDown}>
       <Handle type="target" position={Position.Left} />
       <div 
         className={`
-          rounded-lg transition-colors relative
+          rounded-lg relative
           hover:border-blue-400 hover:shadow-md border-4
           transition-all duration-200
 
           ${isRoot && selected ? "bg-yellow-200 border-2 border-blue-500 shadow-lg p-3" : ""}
           ${isRoot && !selected ? "bg-yellow-100 border-2 border-yellow-500 shadow-lg p-3" : ""}
-          ${!isRoot && selected && !isDeepNode ? "bg-blue-100 border-4 border-blue-500 shadow-md p-2" : ""}
-          ${!isRoot && !selected && !isDeepNode ? "bg-gray-100 border-2 border-gray-300 p-2" : ""}
+          ${!isRoot && selected && !isDeepNode ? "bg-blue-100 border-4 border-blue-500 shadow-md px-2 py-0" : ""}
+          ${!isRoot && !selected && !isDeepNode ? "border-2 px-2 py-0 bg-gray-100 border-gray-300" : ""}
 
           ${isDeepNode && !selected ? "bg-transparent border-transparent  px-2" : ""}
           ${isDeepNode && selected ? "bg-blue-100 border-4 border-blue-500 shadow-md px-2" : ""}
+
+          ${data?.completed ? 'line-through' : ''}
         `}
       >
         {/* Nút collapse / expand */}
@@ -96,9 +121,9 @@ export function TextUpdaterNode({ id, data, selected }: NodeProps) {
               <TooltipTrigger asChild>
                 <button
                   onClick={handleToggle}
-                  className="absolute top-1/2 -right-4 transform -translate-y-1/2 bg-gray-200 hover:bg-gray-300 text-xs px-0.5 py-0.5 rounded z-10 cursor-pointer"
+                  className="absolute top-1/2 -right-4 transform border-2 -translate-y-1/2 bg-white p-1 rounded z-10 cursor-pointer text-gray-500 h-8 w-8"
                 >
-                  {data?.collapsed ? icons.plus : icons.minus}
+                  {data?.collapsed ? childNodesCount : icons.minus}
                 </button>
               </TooltipTrigger>
               <TooltipContent>

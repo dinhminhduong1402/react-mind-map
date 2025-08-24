@@ -11,16 +11,13 @@ import {
   Edge,
   NodeTypes,
   BackgroundVariant,
-  useReactFlow
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
-import { useEffect, useLayoutEffect} from "react";
+import { useLayoutEffect} from "react";
 
 import useMindMapStore from "@/store/useMindMapStore";
 import { saveMindmapToProject } from "@/store/syncLogic";
-
-import useKeyboardShortcuts from "@/hooks/useKeyboardShorcuts";
 
 import { TextUpdaterNode } from "@/components/TextUpdaterNode";
 
@@ -32,8 +29,6 @@ export default function MindMap () {
   const {edges, setEdges} = useMindMapStore((state) => state.edge);
   const {updateLayout} = useMindMapStore((state) => state.layout);
 
-  const {setViewport} = useReactFlow()
-  
   const onNodesChange = (changes: NodeChange<Node>[]) => {
     const updatedNodes = applyNodeChanges(changes, nodes);
     setNodes(updatedNodes);
@@ -55,9 +50,6 @@ export default function MindMap () {
     saveMindmapToProject();
   };
 
-   // hook phím tắt
-  useKeyboardShortcuts();
-
   useLayoutEffect(() => {
      const reactFlowPanel = document.querySelector('.react-flow__panel.react-flow__attribution')
       reactFlowPanel?.remove()
@@ -65,10 +57,6 @@ export default function MindMap () {
 
   }, [])
 
-  useEffect(() => {
-    setViewport({x: 0, y: 0, zoom: 1}, {duration: 1.2, interpolate: 'smooth'})
-    // setCenter(0, 0)
-  }, [])
   
   return (
     <ReactFlow
