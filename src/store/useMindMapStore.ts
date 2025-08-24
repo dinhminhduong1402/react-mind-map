@@ -9,7 +9,7 @@ interface MindMapState {
     
     addSiblingNode: (selectedNode: Node) => Node | null;
     addChildNode: (selectedNode: Node) => Node;
-    addParentNode: (selectedNode: Node) => Node;
+    addParentNode: (selectedNode: Node) => Node | null;
     
     deleteNode: (nodeId: string) => void;
 
@@ -143,6 +143,8 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
         return newNode;
       },
       addParentNode: (selectedNode) => {
+        if(selectedNode.id === 'root') return null
+        
         const offsetX = 200; // khoảng cách dịch sang phải
         const newNodeId = `node-${crypto.randomUUID().toString()}`;
 
