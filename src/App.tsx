@@ -11,29 +11,25 @@ import {
   Edge,
   ReactFlowProvider,
   NodeTypes,
-  BackgroundVariant
+  BackgroundVariant,
 } from "@xyflow/react";
 
 import "@xyflow/react/dist/style.css";
+import './App.css';
 import useMindMapStore from "./store/useMindMapStore";
 import { TextUpdaterNode } from "./components/TextUpdaterNode";
 import { useEffect, useLayoutEffect} from "react";
 import { useUpdateEffect} from "ahooks";
-// import { useCallback } from "react";
-import './App.css';
 import useKeyboardShortcuts from "./hooks/useKeyboardShorcuts";
 import { saveMindmapToProject, loadProjectToMindmap } from "@/store/syncLogic";
 import useProjectStore from "./store/useProjectStore";
-// import useEditingStore from "./store/useEditingStore";
 
 import TopBar from "@/components/TopBar";
 import ToastContainer from "@/components/ToastContainer";
 import ShortcutBar from "./components/ShortcutHelp";
 import { useToastStore } from "./store/useToastStore";
-// import { verify } from "crypto";
 
 const nodeTypes: NodeTypes = {textUpdaterNode: TextUpdaterNode}
-
 
 export default function App() {
   
@@ -52,10 +48,7 @@ export default function App() {
     const selected = updatedNodes.find(n => n.selected)
     if(selected) {
       setcurrentActiveNodeId(selected.id)
-      
     }
-
-    
      // sync vào project
     saveMindmapToProject();
   };
@@ -64,7 +57,6 @@ export default function App() {
     const updatedEdges = applyEdgeChanges(changes, edges);
     setEdges(updatedEdges)
     updateLayout()
-
     // sync vào project
     saveMindmapToProject();
   };
