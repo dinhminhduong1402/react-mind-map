@@ -37,7 +37,10 @@ export default function TailwindTextEditor({ id, text }: TextEditorProps) {
   }, [text]);
   
   useEffect(() => {
-    if(currentFocusNodeId !== id) return
+    if(currentFocusNodeId !== id) {
+      setIsEditing(false)
+      return
+    }
     
     const el = editorRef.current
     if(!el) return
@@ -47,7 +50,7 @@ export default function TailwindTextEditor({ id, text }: TextEditorProps) {
     setTimeout(() => {
       el.focus()
       selectContent(el)
-    }, 50)
+    }, 250)
     
   }, [currentFocusNodeId])
 
@@ -109,11 +112,6 @@ export default function TailwindTextEditor({ id, text }: TextEditorProps) {
       return 0
     } // Cập nhật nội dung
     
-    console.log({
-      isEditing,
-      keydown: e.key,
-      content: el?.innerHTML
-    })
     if(isEditing && (e.key === "Delete" || e.key === "Backspace") && (!el?.innerHTML || el?.innerHTML === '<br>')) {
       return -1 // port ra ngoài để xóa node
     }

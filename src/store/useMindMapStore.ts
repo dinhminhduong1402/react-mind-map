@@ -299,6 +299,8 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
         if (nextFocusId) {
           setCurrentActiveNodeId(nextFocusId);
         }
+
+        get().layout.updateLayout()
       },
 
       setNodes: (nodes) => {
@@ -626,6 +628,7 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
           },
         };
       });
+      get().layout.updateLayout()
     },
     toggleCompleted: (nodeId) => {
       set((state) => ({

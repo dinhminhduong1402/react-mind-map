@@ -24,7 +24,6 @@ export function TextUpdaterNode({ id, data, selected }: NodeProps) {
   const {edges} = useMindMapStore(state => state.edge)
   const toggleCollapse = useMindMapStore((s) => s.toggleCollapse);
   const toggleCompleted = useMindMapStore((s) => s.toggleCompleted);
-  const {updateLayout} = useMindMapStore((s) => s.layout);
 
   const isLeafNode = edges.findIndex(edge => edge.source === id) == -1
 
@@ -47,7 +46,6 @@ export function TextUpdaterNode({ id, data, selected }: NodeProps) {
     event.preventDefault();
     event.stopPropagation();
     toggleCollapse(id);
-    updateLayout()
   }, [id, toggleCollapse]);
 
   const handleCompleted = useCallback((event: MouseEvent) => {
