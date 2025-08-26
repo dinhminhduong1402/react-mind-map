@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { FolderKanban, Loader, CheckCircle } from "lucide-react";
+import { FolderKanban, Loader, CheckCircle, Settings , CircleDollarSign  } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ProjectModal from "./ProjectModal"; // import modal
 // import {Node} from '@xyflow/react'
@@ -33,14 +33,17 @@ export default function TopBar({ currentProject }: TopBarProps) {
     <>
       <header
         className={`
-          fixed top-0 left-0 z-40 mt-0.5
-          bg-white 
-          px-6 py-2
-          flex items-center justify-between shadow-lg rounded-4xl
+          fixed top-0 lef-0 w-[100%] z-40 mt-0.5
+          
+          flex items-center justify-between 
         `}
       >
         {/* Project Info */}
-        <div className="flex gap-3" onClick={() => setOpenModal(true)}>
+        <div
+          className="flex gap-3 bg-white shadow-lg rounded-xl
+          px-6 py-2"
+          onClick={() => setOpenModal(true)}
+        >
           <div className="flex items-center gap-2 cursor-pointer">
             <FolderKanban className="text-yellow-500" size={28} />
             <h1 className="text-lg font-semibold text-gray-800">{title}</h1>
@@ -54,19 +57,24 @@ export default function TopBar({ currentProject }: TopBarProps) {
               className="bg-transparent text-gray-800"
               disabled
             >
-              {
-                isSaving 
-                ? <Loader className="animate-spin"/>
-                : <CheckCircle/>
-              }
+              {isSaving ? <Loader className="animate-spin" /> : <CheckCircle />}
               Auto Save
             </Button>
-        </div>
-
+          </div>
         </div>
 
         {/* Right side (menu, button mở modal) */}
-        
+        <div
+          className="flex gap-3 bg-white shadow-xl rounded-xl
+          px-6 py-2"
+        >
+          <Button variant="outline" className="cursor-pointer">
+            <CircleDollarSign></CircleDollarSign>
+          </Button>
+          <Button variant="outline" className="cursor-pointer">
+            <Settings></Settings>
+          </Button>
+        </div>
       </header>
 
       {/* Subheader hiển thị phím tắt */}
