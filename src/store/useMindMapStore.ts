@@ -121,7 +121,7 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
 
         saveHistory();
 
-        const nodes = get().node.nodes;
+        const nodes = [...get().node.nodes];
         const selectedIndex = nodes.findIndex(n => n.id === selectedNode.id);
 
         if (selectedIndex !== -1) {
@@ -129,7 +129,7 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
         } else {
           nodes.push(newNode); // fallback
         }
-        get().node.setcurrentActiveNodeId(newNodeId);
+        get().node.setNodes(nodes)
 
         // tìm parent
         const parentEdge = get().edge.edges.find(
@@ -399,6 +399,11 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
           .filter(e => e.source === parentId)
           .map(e => e.target);
 
+        siblings.sort((a, b) => (
+          node.nodes.findIndex(n => n.id === a) - 
+          node.nodes.findIndex(n => n.id === b)
+        ))
+
         const index = siblings.indexOf(currentActiveNodeId);
 
         // có anh em phía trên
@@ -441,6 +446,11 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
         const siblings = edge.edges
           .filter(e => e.source === parentId)
           .map(e => e.target);
+        
+        siblings.sort((a, b) => (
+          node.nodes.findIndex(n => n.id === a) - 
+          node.nodes.findIndex(n => n.id === b)
+        ))
 
         const index = siblings.indexOf(currentActiveNodeId);
 
