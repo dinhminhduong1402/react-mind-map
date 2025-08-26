@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { FolderKanban, Loader, CheckCircle, Settings , CircleDollarSign  } from "lucide-react";
+import { FolderKanban, Loader, CheckCircle, Settings , CircleDollarSign, Redo2, Undo2, ListCollapse, Save, Trash2, ArrowRightToLine ,ArrowLeftToLine ,ArrowDownToLine  } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ProjectModal from "./ProjectModal"; // import modal
 // import {Node} from '@xyflow/react'
@@ -61,6 +61,20 @@ export default function TopBar({ currentProject }: TopBarProps) {
               Auto Save
             </Button>
           </div>
+        </div>
+
+        <div
+          className="flex gap-3 bg-white shadow-xl rounded-xl
+          px-6 py-2"
+        >
+          <Button variant='outline' className="cursor-pointer"><Undo2   ></Undo2></Button>
+          <Button variant='outline' className="cursor-pointer"><Redo2  ></Redo2></Button>
+          <Button variant='outline' className="cursor-pointer"><ArrowRightToLine  ></ArrowRightToLine></Button>
+          <Button variant='outline' className="cursor-pointer"><ArrowLeftToLine  ></ArrowLeftToLine></Button>
+          <Button variant='outline' className="cursor-pointer"><ArrowDownToLine  ></ArrowDownToLine></Button>
+          <Button variant='outline' className="cursor-pointer"><ListCollapse  ></ListCollapse></Button>
+          <Button variant='outline' className="cursor-pointer"><Trash2  ></Trash2></Button>
+          <Button variant='outline' className="cursor-pointer"><Save  ></Save></Button>
         </div>
 
         {/* Right side (menu, button mở modal) */}
