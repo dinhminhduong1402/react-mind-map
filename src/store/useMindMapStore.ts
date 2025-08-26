@@ -121,7 +121,14 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
 
         saveHistory();
 
-        get().node.setNodes([...get().node.nodes, newNode]);
+        const nodes = get().node.nodes;
+        const selectedIndex = nodes.findIndex(n => n.id === selectedNode.id);
+
+        if (selectedIndex !== -1) {
+          nodes.splice(selectedIndex + 1, 0, newNode); // chèn ngay sau selectedNode
+        } else {
+          nodes.push(newNode); // fallback
+        }
         get().node.setcurrentActiveNodeId(newNodeId);
 
         // tìm parent
@@ -501,8 +508,16 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
         const childrenMap: Record<string, string[]> = {};
         edge.edges.forEach(e => {
           const parent = byId.get(e.source);
-          if (parent?.data?.collapsed) return; // coi như không có con khi collapsed
+          if (parent?.data?.collapsed) return; 
           (childrenMap[e.source] ??= []).push(e.target);
+        });
+
+        // 👉 Sort children theo thứ tự trong node.nodes
+        Object.keys(childrenMap).forEach(pid => {
+          childrenMap[pid].sort((a, b) => {
+            return node.nodes.findIndex(n => n.id === a) -
+                  node.nodes.findIndex(n => n.id === b);
+          });
         });
 
         // Tính blockHeight (chiều cao subtree) bằng đệ quy + memo
@@ -529,14 +544,14 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
         const screenH = window.innerHeight;
         const rootTop = Math.max((screenH - totalH) / 2, 20); // căn giữa dọc
 
-        // Đặt toạ độ: parent ở giữa block của nó; con bắt đầu ở top block hiện tại
+        // Đặt toạ độ
         const pos = new Map<string, { x: number; y: number }>();
         const place = (id: string, left: number, top: number) => {
           const { w, h } = sizeOf(id);
           const myBlockH = blockHeight.get(id)!;
 
-          const x = left;                         // mép trái node
-          const y = top + (myBlockH - h) / 2;     // canh giữa theo block
+          const x = left;
+          const y = top + (myBlockH - h) / 2;
 
           pos.set(id, { x, y });
 
@@ -544,9 +559,9 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
           if (kids.length === 0) return;
 
           let nextTop = top;
-          const childLeft = x + w + H_GAP;        // con luôn bên phải mép ngoài cha
+          const childLeft = x + w + H_GAP;
 
-          kids.forEach((cid) => {
+          kids.forEach(cid => {
             const chBlockH = blockHeight.get(cid)!;
             place(cid, childLeft, nextTop);
             nextTop += chBlockH + V_GAP;
@@ -565,6 +580,7 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
           node: { ...state.node, nodes: updatedNodes }
         }));
       }
+
 
       
     },
@@ -629,6 +645,12 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
         };
       });
       get().layout.updateLayout()
+
+      //force render
+      get().node.setcurrentActiveNodeId(new Date().getTime().toString()) 
+      setTimeout(() => {
+        get().node.setcurrentActiveNodeId(id)
+      }, 50) 
     },
     toggleCompleted: (nodeId) => {
       set((state) => ({

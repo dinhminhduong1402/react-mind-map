@@ -83,22 +83,22 @@ export default function useKeyboardShortcuts() {
         return 0
       }
 
-      if(e.key === 'ArrowLeft') {
+      if(e.key === 'ArrowLeft' && !e.ctrlKey) {
         console.log('move left')
         moveLeft()
         return 0
       }
-      if(e.key === 'ArrowRight') {
+      if(e.key === 'ArrowRight' && !e.ctrlKey) {
         console.log('move right')
         moveRight()
         return 0
       }
-      if(e.key === 'ArrowUp') {
+      if(e.key === 'ArrowUp' && !e.ctrlKey) {
         console.log('move up')
         moveUp()
         return 0
       }
-      if(e.key === 'ArrowDown') {
+      if(e.key === 'ArrowDown' && !e.ctrlKey) {
         console.log('move down')
         moveDown()
         return 0

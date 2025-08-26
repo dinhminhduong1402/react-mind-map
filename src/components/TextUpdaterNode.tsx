@@ -1,5 +1,5 @@
 import { Handle, Position, NodeProps, Edge } from "@xyflow/react";
-import { MouseEvent, useCallback, ReactNode, useRef, useMemo } from "react";
+import { MouseEvent, useCallback, ReactNode, useRef, useMemo, useLayoutEffect } from "react";
 import TextEditor from "./TextEditor";
 import useMindMapStore from "../store/useMindMapStore";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
@@ -20,7 +20,7 @@ export function TextUpdaterNode({ id, data, selected }: NodeProps) {
   const isRoot = id === "root";
   
 
-  const {nodes} = useMindMapStore(state => state.node)
+  const {nodes, setcurrentActiveNodeId} = useMindMapStore(state => state.node)
   const {edges} = useMindMapStore(state => state.edge)
   const toggleCollapse = useMindMapStore((s) => s.toggleCollapse);
   const toggleCompleted = useMindMapStore((s) => s.toggleCompleted);
@@ -93,13 +93,20 @@ export function TextUpdaterNode({ id, data, selected }: NodeProps) {
     return getAllChildCount(id, edges)
   }, [nodes, edges])
 
+  useLayoutEffect(() => {
+    const selectedNode = nodes.find(n => n.selected)
+    if(selectedNode) {
+      setcurrentActiveNodeId(selectedNode.id)
+    }
+  }, [])
+
   return (
     <div ref={nodeRef} tabIndex={-1} onKeyDown={onKeyDown}>
       <Handle type="target" position={Position.Left} />
       <div 
         className={`
           rounded-lg relative
-          hover:border-blue-400 hover:shadow-md border-4
+           hover:shadow-md border-4 hover:scale-110 hover:inset-ring-blue-500
           transition-all duration-200
 
           ${isRoot && selected ? "bg-yellow-200 border-2 border-blue-500 shadow-lg p-3" : ""}

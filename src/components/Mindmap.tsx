@@ -15,14 +15,12 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
-import { useCallback, useEffect, useLayoutEffect, useRef} from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useMemo} from "react";
 
 import useMindMapStore from "@/store/useMindMapStore";
 import { saveMindmapToProject } from "@/store/syncLogic";
 
 import { TextUpdaterNode } from "@/components/TextUpdaterNode";
-
-const nodeTypes: NodeTypes = {textUpdaterNode: TextUpdaterNode}
 
 export default function MindMap () {
 
@@ -30,6 +28,10 @@ export default function MindMap () {
   const {edges, setEdges} = useMindMapStore((state) => state.edge);
   const {updateLayout} = useMindMapStore((state) => state.layout);
   const {setCenter, getViewport } = useReactFlow()
+
+  const nodeTypes: NodeTypes = useMemo(() => (
+    {textUpdaterNode: TextUpdaterNode}
+  ), [])
 
   const flowEl = useRef<HTMLDivElement>(null)
 
@@ -47,7 +49,7 @@ export default function MindMap () {
       const nodeWidth = selected.width || 150
       const nodeHeight = selected.height || 50
 
-      const margin = 80;
+      const margin = 120;
       const insideViewport =
         nodeScreenX > margin &&
         nodeScreenY > margin &&
