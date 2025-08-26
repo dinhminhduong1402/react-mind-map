@@ -4,7 +4,6 @@ import { useUpdateEffect} from "ahooks";
 
 import TopBar from "@/components/TopBar";
 import ToastContainer from "@/components/ToastContainer";
-import ShortcutBar from "./components/ShortcutHelp";
 import MindMap from "./components/Mindmap";
 
 import { loadProjectToMindmap } from "@/store/syncLogic";
@@ -47,7 +46,6 @@ export default function App() {
       <TopBar currentProject={currentProject} />
       <div  style={{ width: "100vw", height: "100vh"}}>
         <ReactFlowProvider><MindMap/></ReactFlowProvider>
-        <ShortcutBar/>
       </div>
       <ToastContainer/>
     </div>

@@ -49,7 +49,7 @@ export default function MindMap () {
       const nodeWidth = selected.width || 150
       const nodeHeight = selected.height || 50
 
-      const margin = 120;
+      const margin = 60;
       const insideViewport =
         nodeScreenX > margin &&
         nodeScreenY > margin &&

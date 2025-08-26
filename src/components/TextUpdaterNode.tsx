@@ -9,10 +9,10 @@ import useKeyBoardManager from "@/core/useKeyBoardManger";
 
 
 const icons: Record<string, ReactNode > = {
-  pending: <Circle className="text-gray-400" size={25} />,
-  completed: <CircleCheckBig className="text-gray-400"  size={25} />,
+  pending: <Circle className="text-gray-400" size={20} />,
+  completed: <CircleCheckBig className="text-gray-400"  size={20} />,
   minus: <Minus className="bg-transparent"  size={20} />,
-  plus: <Plus className="text-gray-500 bg-gray-100"  size={20} />,
+  plus: <Plus className="text-gray-500 bg-gray-100"  size={16} />,
 };
 
 export function TextUpdaterNode({ id, data, selected }: NodeProps) {
@@ -106,7 +106,7 @@ export function TextUpdaterNode({ id, data, selected }: NodeProps) {
       <div 
         className={`
           rounded-lg relative
-           hover:shadow-md border-4 hover:scale-110 hover:inset-ring-blue-500
+           hover:shadow-[0_0_15px_rgba(0,0,0,0.2)] border-4 hover:scale-110 
           transition-all duration-200
 
           ${isRoot && selected ? "bg-yellow-200 border-2 border-blue-500 shadow-lg p-3" : ""}
@@ -126,7 +126,7 @@ export function TextUpdaterNode({ id, data, selected }: NodeProps) {
               <TooltipTrigger asChild>
                 <button
                   onClick={handleToggle}
-                  className="absolute top-1/2 -right-4 transform border-2 -translate-y-1/2 bg-white p-1 rounded z-10 cursor-pointer text-gray-500 h-8 w-8"
+                  className="absolute top-1/2 -right-4 transform border-2 -translate-y-1/2 bg-white rounded z-10 cursor-pointer text-gray-500 h-6 w-6"
                 >
                   {data?.collapsed ? childNodesCount : icons.minus}
                 </button>

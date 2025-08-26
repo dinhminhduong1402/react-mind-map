@@ -199,7 +199,7 @@ export default function TailwindTextEditor({ id, text }: TextEditorProps) {
         suppressContentEditableWarning
         className={`
           ${isEditing ? 'nodrag border-blue-500 bg-transparent cursor-text' : 'cursor-pointer'}
-          p-3 min-h-[40px] rounded-lg text-base leading-snug outline-none transition-all
+          p-1 rounded-lg text-base leading-snug outline-none transition-all
           hover:border-blue-500
         `}
       />

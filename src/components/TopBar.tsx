@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { FolderKanban, Loader, CheckCircle, Settings , CircleDollarSign, Redo2, Undo2, ListCollapse, Save, Trash2, ArrowRightToLine ,ArrowLeftToLine ,ArrowDownToLine  } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ProjectModal from "./ProjectModal"; // import modal
 // import {Node} from '@xyflow/react'
 import {saveMindmapToProject} from '@/store/syncLogic'
 import useProjectStore from "@/store/useProjectStore";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 interface Project {
   project_id: string | null;
@@ -29,19 +30,33 @@ export default function TopBar({ currentProject }: TopBarProps) {
     }
   }, [currentProject]);
 
+  const actions = useMemo(() => (
+    [
+      {icon: <Undo2></Undo2>, title: "Undo", shorcut: 'Crt + Z'},
+      {icon: <Redo2></Redo2>, title: "Redo", shorcut: 'Crt + Shift + Z'},
+      {icon: <ArrowRightToLine></ArrowRightToLine>, title: "Add child node", shorcut: 'Tab'},
+      {icon: <ArrowLeftToLine></ArrowLeftToLine>, title: "Add sibling node", shorcut: 'Enter'},
+      {icon: <ArrowDownToLine  ></ArrowDownToLine>, title: "Add parent node", shorcut: 'Shift + Tab'},
+      {icon: <ListCollapse  ></ListCollapse>, title: "Toggle subtree", shorcut: 'Crt + /'},
+      {icon: <Save  ></Save>, title: "Save project", shorcut: 'Crt + S'},
+      {icon: <Trash2  ></Trash2>, title: "Delete node/subtree", shorcut: 'Delete/Backspace'},
+      
+    ]
+  ), [])
+
   return (
     <>
       <header
         className={`
-          fixed top-0 lef-0 w-[100%] z-40 mt-0.5
+          fixed top-0 lef-0 w-[100%] z-40 mt-1 bg-transparent
           
-          flex items-center justify-between 
+          flex items-center justify-between px-3
         `}
       >
         {/* Project Info */}
         <div
-          className="flex gap-3 bg-white shadow-lg rounded-xl
-          px-6 py-2"
+          className="flex gap-3 bg-white rounded-md shadow-[0_0_15px_rgba(0,0,0,0.2)]
+          px-3 py-1"
           onClick={() => setOpenModal(true)}
         >
           <div className="flex items-center gap-2 cursor-pointer">
@@ -64,28 +79,40 @@ export default function TopBar({ currentProject }: TopBarProps) {
         </div>
 
         <div
-          className="flex gap-3 bg-white shadow-xl rounded-xl
-          px-6 py-2"
+          className="flex gap-3 bg-white shadow-[0_0_15px_rgba(0,0,0,0.2)] rounded-md
+          px-3 py-1"
         >
-          <Button variant='outline' className="cursor-pointer"><Undo2   ></Undo2></Button>
-          <Button variant='outline' className="cursor-pointer"><Redo2  ></Redo2></Button>
-          <Button variant='outline' className="cursor-pointer"><ArrowRightToLine  ></ArrowRightToLine></Button>
-          <Button variant='outline' className="cursor-pointer"><ArrowLeftToLine  ></ArrowLeftToLine></Button>
-          <Button variant='outline' className="cursor-pointer"><ArrowDownToLine  ></ArrowDownToLine></Button>
-          <Button variant='outline' className="cursor-pointer"><ListCollapse  ></ListCollapse></Button>
-          <Button variant='outline' className="cursor-pointer"><Trash2  ></Trash2></Button>
-          <Button variant='outline' className="cursor-pointer"><Save  ></Save></Button>
+          {actions.map((action, index) => (
+            <TooltipProvider key={index}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button className="cursor-pointer" variant="ghost">
+                    {action.icon}
+                  </Button>
+                </TooltipTrigger>
+
+                <TooltipContent side="bottom" className="text-sm">
+                  <p className="p-1">
+                    {action.title} = {" "}
+                    <kbd className="px-1 py-0.5 bg-gray-200 rounded text-black">
+                      {action.shorcut}
+                    </kbd>
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          ))}
         </div>
 
         {/* Right side (menu, button mở modal) */}
         <div
-          className="flex gap-3 bg-white shadow-xl rounded-xl
-          px-6 py-2"
+          className="flex gap-3 bg-white rounded-md shadow-[0_0_15px_rgba(0,0,0,0.2)]
+          px-3 py-1"
         >
-          <Button variant="outline" className="cursor-pointer">
+          <Button variant="ghost" className="cursor-pointer">
             <CircleDollarSign></CircleDollarSign>
           </Button>
-          <Button variant="outline" className="cursor-pointer">
+          <Button variant="ghost" className="cursor-pointer">
             <Settings></Settings>
           </Button>
         </div>
