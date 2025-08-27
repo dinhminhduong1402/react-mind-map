@@ -2,16 +2,15 @@ import { Handle, Position, NodeProps, Edge } from "@xyflow/react";
 import { MouseEvent, useCallback, ReactNode, useRef, useMemo, useLayoutEffect } from "react";
 import TextEditor from "./TextEditor";
 import useMindMapStore from "../store/useMindMapStore";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { Circle , CircleCheckBig , Minus , Plus  } from "lucide-react";
 import useKeyBoardManager from "@/core/useKeyBoardManger";
 
 
 
 const icons: Record<string, ReactNode > = {
-  pending: <Circle className="text-gray-400" size={20} />,
-  completed: <CircleCheckBig className="text-gray-400"  size={20} />,
-  minus: <Minus className="bg-transparent"  size={20} />,
+  pending: <Circle className="text-gray-400" size={18} />,
+  completed: <CircleCheckBig className="text-gray-400"  size={18} />,
+  minus: <Minus className="bg-transparent"  size={16} />,
   plus: <Plus className="text-gray-500 bg-gray-100"  size={16} />,
 };
 
@@ -106,52 +105,38 @@ export function TextUpdaterNode({ id, data, selected }: NodeProps) {
       <div 
         className={`
           rounded-lg relative
-           hover:shadow-[0_0_15px_rgba(0,0,0,0.2)] border-4 hover:scale-110 
+           hover:shadow-[0_0_15px_rgba(0,0,0,0.2)] border-4 hover:border-purple-400 
           transition-all duration-200
 
-          ${isRoot && selected ? "bg-yellow-200 border-2 border-blue-500 shadow-lg p-3" : ""}
-          ${isRoot && !selected ? "bg-yellow-100 border-2 border-yellow-500 shadow-lg p-3" : ""}
-          ${!isRoot && selected && !isDeepNode ? "bg-blue-100 border-4 border-blue-500 shadow-md px-2 py-0" : ""}
+          ${isRoot && selected ? "bg-yellow-200 border-2 border-purple-400 shadow-lg p-3" : ""}
+          ${isRoot && !selected ? "bg-yellow-200 border-2 border-orange-300 shadow-lg p-3" : ""}
+          ${!isRoot && selected && !isDeepNode ? "bg-purple-100 border-4 border-purple-400 shadow-md px-2 py-0" : ""}
           ${!isRoot && !selected && !isDeepNode ? "border-2 px-2 py-0 bg-gray-100 border-gray-300" : ""}
 
           ${isDeepNode && !selected ? "bg-transparent border-transparent  px-2" : ""}
-          ${isDeepNode && selected ? "bg-blue-100 border-4 border-blue-500 shadow-md px-2" : ""}
+          ${isDeepNode && selected ? "bg-purple-100 border-4 border-purple-400 shadow-md px-2" : ""}
 
           ${data?.completed ? 'line-through' : ''}
         `}
       >
         {/* Nút collapse / expand */}
         {!isRoot && !isLeafNode && (
-           <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  onClick={handleToggle}
-                  className="absolute top-1/2 -right-4 transform border-2 -translate-y-1/2 bg-white rounded z-10 cursor-pointer text-gray-500 h-6 w-6"
-                >
-                  {data?.collapsed ? childNodesCount : icons.minus}
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{data?.collapsed ? "Expand nodes" : "Collapse nodes"}</p>
-              </TooltipContent>
-            </Tooltip>
+           <button
+              onClick={handleToggle}
+              className="absolute top-1/2 -right-4 transform border-2 -translate-y-1/2 bg-white rounded-full z-10 text-[10px] cursor-pointer text-gray-500 h-5 w-5"
+            >
+              {data?.collapsed ? childNodesCount : icons.minus}
+            </button>
         )}
 
         {/* Nút đánh dấu đã hoàn thành */}
         {!isRoot && (
-           <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  onClick={handleCompleted}
-                  className="absolute top-1/2 -left-4 transform -translate-y-1/2 bg-white hover:bg-gray-100 text-xs  rounded-full z-10 cursor-pointer"
-                >
-                  {data?.completed ? icons.completed : icons.pending}
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{data?.completed ? "Mark as Incomplete" : "Mark as Completed"}</p>
-              </TooltipContent>
-            </Tooltip>
+           <button
+              onClick={handleCompleted}
+              className="absolute top-1/2 -left-4 transform -translate-y-1/2 bg-white hover:bg-gray-100 text-xs  rounded-full z-10 cursor-pointer h-5 w-5"
+            >
+                {data?.completed ? icons.completed : icons.pending}
+            </button>
         )}
         
         {/* Nội dung editor */}
