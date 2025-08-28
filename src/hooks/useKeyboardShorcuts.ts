@@ -14,13 +14,15 @@ export default function useKeyboardShortcuts() {
       // no need selected node
       if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "f") {
         e.preventDefault(); 
+        e.stopPropagation()
         console.log("update layout")
         const { updateLayout } = useMindMapStore.getState().layout;
         updateLayout()
       }
 
-      if (e.ctrlKey && e.key.toLowerCase() === "z") {
+      if (e.ctrlKey && e.key.toLowerCase() === "z" && !e.shiftKey) {
         e.preventDefault(); 
+        e.stopPropagation()
         console.log('Crt Z')
         const { undo } = useMindMapStore.getState().history;
         undo()

@@ -49,6 +49,11 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
     const { nodes } = get().node;
     const { edges } = get().edge;
     const { past } = get().history;
+
+    const isSame = JSON.stringify(past[past.length - 1]) === JSON.stringify({nodes, edges})
+    console.log({isSame})
+    if(isSame) return
+    
     set({
       history: {
         past: [...past, { nodes, edges }],
@@ -122,14 +127,14 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
         saveHistory();
 
         const nodes = [...get().node.nodes];
-        const selectedIndex = nodes.findIndex(n => n.id === selectedNode.id);
+        const selectedIndex = nodes.findIndex((n) => n.id === selectedNode.id);
 
         if (selectedIndex !== -1) {
           nodes.splice(selectedIndex + 1, 0, newNode); // chèn ngay sau selectedNode
         } else {
           nodes.push(newNode); // fallback
         }
-        get().node.setNodes(nodes)
+        get().node.setNodes(nodes);
 
         // tìm parent
         const parentEdge = get().edge.edges.find(
@@ -150,8 +155,8 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
         return newNode;
       },
       addParentNode: (selectedNode) => {
-        if(selectedNode.id === 'root') return null
-        
+        if (selectedNode.id === "root") return null;
+
         const offsetX = 200; // khoảng cách dịch sang phải
         const newNodeId = `node-${crypto.randomUUID().toString()}`;
 
@@ -203,7 +208,9 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
         });
 
         // --- 2. Xử lý lại edges (nối oldParent -> newParent nếu cần)
-        const oldParentEdge = edge.edges.find((e) => e.target === selectedNode.id);
+        const oldParentEdge = edge.edges.find(
+          (e) => e.target === selectedNode.id
+        );
         let updatedEdges = [...edge.edges, newEdge];
 
         if (oldParentEdge) {
@@ -226,7 +233,6 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
         return newNode;
       },
 
-
       deleteNode: (nodeId) => {
         if (!nodeId) return;
         if (nodeId === "root") {
@@ -234,9 +240,8 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
           return;
         }
 
-        const { node, edge } = get()
-        const setCurrentActiveNodeId = node.setcurrentActiveNodeId
-        
+        const { node, edge } = get();
+        const setCurrentActiveNodeId = node.setcurrentActiveNodeId;
 
         // --- Tìm parent của node này
         const parentEdge = edge.edges.find((e) => e.target === nodeId);
@@ -307,7 +312,7 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
           setCurrentActiveNodeId(nextFocusId);
         }
 
-        get().layout.updateLayout()
+        get().layout.updateLayout();
       },
 
       setNodes: (nodes) => {
@@ -362,14 +367,15 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
         });
       },
 
-
       moveLeft: () => {
         const { node, edge } = get();
         const { currentActiveNodeId, setcurrentActiveNodeId } = node;
         if (!currentActiveNodeId) return;
 
         // tìm edge cha → con
-        const parentEdge = edge.edges.find(e => e.target === currentActiveNodeId);
+        const parentEdge = edge.edges.find(
+          (e) => e.target === currentActiveNodeId
+        );
         if (parentEdge) {
           setcurrentActiveNodeId(parentEdge.source);
         }
@@ -380,7 +386,9 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
         if (!currentActiveNodeId) return;
 
         // tìm danh sách con
-        const childEdges = edge.edges.filter(e => e.source === currentActiveNodeId);
+        const childEdges = edge.edges.filter(
+          (e) => e.source === currentActiveNodeId
+        );
         if (childEdges.length > 0) {
           setcurrentActiveNodeId(childEdges[0].target); // con đầu tiên
         }
@@ -390,19 +398,22 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
         const { currentActiveNodeId, setcurrentActiveNodeId } = node;
         if (!currentActiveNodeId) return;
 
-        const parentEdge = edge.edges.find(e => e.target === currentActiveNodeId);
+        const parentEdge = edge.edges.find(
+          (e) => e.target === currentActiveNodeId
+        );
         if (!parentEdge) return; // root không có cha
         const parentId = parentEdge.source;
 
         // danh sách anh em
         const siblings = edge.edges
-          .filter(e => e.source === parentId)
-          .map(e => e.target);
+          .filter((e) => e.source === parentId)
+          .map((e) => e.target);
 
-        siblings.sort((a, b) => (
-          node.nodes.findIndex(n => n.id === a) - 
-          node.nodes.findIndex(n => n.id === b)
-        ))
+        siblings.sort(
+          (a, b) =>
+            node.nodes.findIndex((n) => n.id === a) -
+            node.nodes.findIndex((n) => n.id === b)
+        );
 
         const index = siblings.indexOf(currentActiveNodeId);
 
@@ -413,19 +424,21 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
         }
 
         // nếu không có → tìm anh em họ (uncle) của cha
-        const grandParentEdge = edge.edges.find(e => e.target === parentId);
+        const grandParentEdge = edge.edges.find((e) => e.target === parentId);
         if (!grandParentEdge) return;
 
         const grandParentId = grandParentEdge.source;
         const uncles = edge.edges
-          .filter(e => e.source === grandParentId)
-          .map(e => e.target);
+          .filter((e) => e.source === grandParentId)
+          .map((e) => e.target);
 
         const parentIndex = uncles.indexOf(parentId);
         if (parentIndex > 0) {
           const uncleAbove = uncles[parentIndex - 1];
           // nếu uncle có con → chọn con cuối
-          const cousins = edge.edges.filter(e => e.source === uncleAbove).map(e => e.target);
+          const cousins = edge.edges
+            .filter((e) => e.source === uncleAbove)
+            .map((e) => e.target);
           if (cousins.length > 0) {
             setcurrentActiveNodeId(cousins[cousins.length - 1]);
           } else {
@@ -438,19 +451,22 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
         const { currentActiveNodeId, setcurrentActiveNodeId } = node;
         if (!currentActiveNodeId) return;
 
-        const parentEdge = edge.edges.find(e => e.target === currentActiveNodeId);
+        const parentEdge = edge.edges.find(
+          (e) => e.target === currentActiveNodeId
+        );
         if (!parentEdge) return;
         const parentId = parentEdge.source;
 
         // danh sách anh em
         const siblings = edge.edges
-          .filter(e => e.source === parentId)
-          .map(e => e.target);
-        
-        siblings.sort((a, b) => (
-          node.nodes.findIndex(n => n.id === a) - 
-          node.nodes.findIndex(n => n.id === b)
-        ))
+          .filter((e) => e.source === parentId)
+          .map((e) => e.target);
+
+        siblings.sort(
+          (a, b) =>
+            node.nodes.findIndex((n) => n.id === a) -
+            node.nodes.findIndex((n) => n.id === b)
+        );
 
         const index = siblings.indexOf(currentActiveNodeId);
 
@@ -461,27 +477,27 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
         }
 
         // nếu không có → tìm anh em họ phía dưới
-        const grandParentEdge = edge.edges.find(e => e.target === parentId);
+        const grandParentEdge = edge.edges.find((e) => e.target === parentId);
         if (!grandParentEdge) return;
 
         const grandParentId = grandParentEdge.source;
         const uncles = edge.edges
-          .filter(e => e.source === grandParentId)
-          .map(e => e.target);
+          .filter((e) => e.source === grandParentId)
+          .map((e) => e.target);
 
         const parentIndex = uncles.indexOf(parentId);
         if (parentIndex < uncles.length - 1) {
           const uncleBelow = uncles[parentIndex + 1];
-          const cousins = edge.edges.filter(e => e.source === uncleBelow).map(e => e.target);
+          const cousins = edge.edges
+            .filter((e) => e.source === uncleBelow)
+            .map((e) => e.target);
           if (cousins.length > 0) {
             setcurrentActiveNodeId(cousins[0]); // con đầu tiên
           } else {
             setcurrentActiveNodeId(uncleBelow);
           }
         }
-      }
-      
-      
+      },
     },
     edge: {
       edges: [],
@@ -490,21 +506,20 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
       },
     },
     layout: {
-
       updateLayout: () => {
         const { node, edge } = get();
         const rootId = "root";
-        if (!node.nodes.find(n => n.id === rootId)) return;
+        if (!node.nodes.find((n) => n.id === rootId)) return;
 
         // Khoảng cách có thể chỉnh tuỳ UI
-        const LEFT = 50;        // lề trái cho root
-        const H_GAP = 80;      // khoảng cách ngang cha ↔ con
-        const V_GAP = 20;       // khoảng cách dọc giữa các subtree siblings
-        const DEFAULT_W = 150;  // fallback width nếu chưa đo
-        const DEFAULT_H = 50;   // fallback height nếu chưa đo
+        const LEFT = 50; // lề trái cho root
+        const H_GAP = 80; // khoảng cách ngang cha ↔ con
+        const V_GAP = 20; // khoảng cách dọc giữa các subtree siblings
+        const DEFAULT_W = 150; // fallback width nếu chưa đo
+        const DEFAULT_H = 50; // fallback height nếu chưa đo
 
         // Map nhanh id → node
-        const byId = new Map(node.nodes.map(n => [n.id, n]));
+        const byId = new Map(node.nodes.map((n) => [n.id, n]));
 
         // Helper lấy size thực tế
         const sizeOf = (id: string) => {
@@ -516,17 +531,19 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
 
         // Xây childrenMap, bỏ qua con nếu parent đang collapsed
         const childrenMap: Record<string, string[]> = {};
-        edge.edges.forEach(e => {
+        edge.edges.forEach((e) => {
           const parent = byId.get(e.source);
-          if (parent?.data?.collapsed) return; 
+          if (parent?.data?.collapsed) return;
           (childrenMap[e.source] ??= []).push(e.target);
         });
 
         // 👉 Sort children theo thứ tự trong node.nodes
-        Object.keys(childrenMap).forEach(pid => {
+        Object.keys(childrenMap).forEach((pid) => {
           childrenMap[pid].sort((a, b) => {
-            return node.nodes.findIndex(n => n.id === a) -
-                  node.nodes.findIndex(n => n.id === b);
+            return (
+              node.nodes.findIndex((n) => n.id === a) -
+              node.nodes.findIndex((n) => n.id === b)
+            );
           });
         });
 
@@ -571,7 +588,7 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
           let nextTop = top;
           const childLeft = x + w + H_GAP;
 
-          kids.forEach(cid => {
+          kids.forEach((cid) => {
             const chBlockH = blockHeight.get(cid)!;
             place(cid, childLeft, nextTop);
             nextTop += chBlockH + V_GAP;
@@ -581,18 +598,15 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
         place(rootId, LEFT, rootTop);
 
         // Apply vị trí
-        const updatedNodes = node.nodes.map(n => {
+        const updatedNodes = node.nodes.map((n) => {
           const p = pos.get(n.id);
           return p ? { ...n, position: { x: p.x, y: p.y } } : n;
         });
 
-        set(state => ({
-          node: { ...state.node, nodes: updatedNodes }
+        set((state) => ({
+          node: { ...state.node, nodes: updatedNodes },
         }));
-      }
-
-
-      
+      },
     },
 
     toggleCollapse: (id: string) => {
@@ -654,13 +668,13 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
           },
         };
       });
-      get().layout.updateLayout()
+      get().layout.updateLayout();
 
       //force render
-      get().node.setcurrentActiveNodeId(new Date().getTime().toString()) 
+      get().node.setcurrentActiveNodeId(new Date().getTime().toString());
       setTimeout(() => {
-        get().node.setcurrentActiveNodeId(id)
-      }, 50) 
+        get().node.setcurrentActiveNodeId(id);
+      }, 50);
     },
     toggleCompleted: (nodeId) => {
       set((state) => ({
@@ -709,6 +723,11 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
             redo: get().history.redo,
           },
         });
+        const selectedNode = get().node.nodes.find(n => n.selected)
+        if(selectedNode) {
+          get().node.setcurrentActiveNodeId(selectedNode.id)
+        }
+        
       },
       redo: () => {
         const { past, future } = get().history;
@@ -731,6 +750,10 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
             redo: get().history.redo,
           },
         });
+        const selectedNode = get().node.nodes.find(n => n.selected)
+        if(selectedNode) {
+          get().node.setcurrentActiveNodeId(selectedNode.id)
+        }
       },
     },
   };
