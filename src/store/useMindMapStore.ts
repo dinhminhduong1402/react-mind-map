@@ -431,6 +431,12 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
         const uncles = edge.edges
           .filter((e) => e.source === grandParentId)
           .map((e) => e.target);
+        
+        uncles.sort(
+          (a, b) =>
+            node.nodes.findIndex((n) => n.id === a) -
+            node.nodes.findIndex((n) => n.id === b)
+        );
 
         const parentIndex = uncles.indexOf(parentId);
         if (parentIndex > 0) {
@@ -484,6 +490,11 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
         const uncles = edge.edges
           .filter((e) => e.source === grandParentId)
           .map((e) => e.target);
+        uncles.sort(
+          (a, b) =>
+            node.nodes.findIndex((n) => n.id === a) -
+            node.nodes.findIndex((n) => n.id === b)
+        );
 
         const parentIndex = uncles.indexOf(parentId);
         if (parentIndex < uncles.length - 1) {
