@@ -1,5 +1,5 @@
 import { Handle, Position, NodeProps, Edge } from "@xyflow/react";
-import { MouseEvent, useCallback, ReactNode, useRef, useMemo, useLayoutEffect } from "react";
+import { MouseEvent, useCallback, ReactNode, useRef, useMemo, useLayoutEffect, useEffect } from "react";
 import TextEditor from "./TextEditor";
 import useMindMapStore from "../store/useMindMapStore";
 import { Circle , CircleCheckBig , Minus , Plus  } from "lucide-react";
@@ -19,7 +19,7 @@ export function TextUpdaterNode({ id, data, selected }: NodeProps) {
   const isRoot = id === "root";
   
 
-  const {nodes, setcurrentActiveNodeId} = useMindMapStore(state => state.node)
+  const {nodes, setcurrentActiveNodeId, currentActiveNodeId, setcurrentFocusNodeId, moveDown, moveLeft, moveRight, moveUp, addChildNode, addParentNode} = useMindMapStore(state => state.node)
   const {edges} = useMindMapStore(state => state.edge)
   const toggleCollapse = useMindMapStore((s) => s.toggleCollapse);
   const toggleCompleted = useMindMapStore((s) => s.toggleCompleted);
@@ -56,13 +56,61 @@ export function TextUpdaterNode({ id, data, selected }: NodeProps) {
   const nodeRef = useRef<HTMLDivElement>(null)
   
   const shortCuts = (e: React.KeyboardEvent<HTMLElement>) => {
-    const {nodes, currentActiveNodeId, addSiblingNode} = useMindMapStore.getState().node
+    const {nodes, currentActiveNodeId, addSiblingNode, deleteNode} = useMindMapStore.getState().node
+    const {toggleCollapse} = useMindMapStore.getState()
 
     const selectedNode = nodes.find(n => n.id === currentActiveNodeId)
     if(!selectedNode) return -1
+
+    if (e.key === "Tab" && !e.shiftKey) {
+      addChildNode(selectedNode);
+      return 0
+    }
+
+    if(e.shiftKey && e.key === 'Tab') {
+      addParentNode(selectedNode)
+      return 0
+    }
     
     if (e.key === "Enter") { //Phải nghe nút enter ở phần tử con để chặn đi enter nổi ra ngoài phần conflic với enter của flutter flow
       addSiblingNode(selectedNode);
+      return 0
+    }
+
+    if (e.key === "Delete" || e.key === "Backspace") {
+      deleteNode(selectedNode.id);
+      return 0
+    }
+
+    if (e.key === 'F2') {
+      setcurrentFocusNodeId('')
+      setTimeout(() => setcurrentFocusNodeId(selectedNode.id), 0) // Force update - Tránh trường hợp currentFocusNodeId trước đó trùng với selected node id hiện tại (=>>>>>> Thật nghệ thuật)
+      return 0
+    }
+
+    if(e.key === 'ArrowLeft' && !e.ctrlKey) {
+      console.log('move left')
+      moveLeft()
+      return 0
+    }
+    if(e.key === 'ArrowRight' && !e.ctrlKey) {
+      console.log('move right')
+      moveRight()
+      return 0
+    }
+    if(e.key === 'ArrowUp' && !e.ctrlKey) {
+      console.log('move up')
+      moveUp()
+      return 0
+    }
+    if(e.key === 'ArrowDown' && !e.ctrlKey) {
+      console.log('move down')
+      moveDown()
+      return 0
+    }
+
+    if(e.ctrlKey && e.code === 'Slash') {
+      toggleCollapse(selectedNode.id)
       return 0
     }
 
@@ -98,6 +146,11 @@ export function TextUpdaterNode({ id, data, selected }: NodeProps) {
       setcurrentActiveNodeId(selectedNode.id)
     }
   }, [])
+
+  useEffect(() => {
+    if(currentActiveNodeId !== id) return
+    nodeRef?.current?.focus()
+  }, [currentActiveNodeId])
 
   return (
     <div ref={nodeRef} tabIndex={-1} onKeyDown={onKeyDown}>

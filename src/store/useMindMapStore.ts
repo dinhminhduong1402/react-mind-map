@@ -685,6 +685,7 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
       get().node.setcurrentActiveNodeId(new Date().getTime().toString());
       setTimeout(() => {
         get().node.setcurrentActiveNodeId(id);
+        get().node.setcurrentFocusNodeId(''); // clear focus to text editor
       }, 50);
     },
     toggleCompleted: (nodeId) => {
