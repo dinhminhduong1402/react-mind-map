@@ -98,6 +98,7 @@ export default function MindMap () {
     event: React.MouseEvent<Element, MouseEvent>,
     draggedNode: Node
   ) => {
+    console.log({event})
     const nodes = useMindMapStore.getState().node.nodes;
     const edges = useMindMapStore.getState().edge.edges;
 
