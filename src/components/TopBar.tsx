@@ -111,9 +111,11 @@ export default function TopBar({ currentProject }: TopBarProps) {
         >
           <Button variant="ghost" className="cursor-pointer">
             <CircleDollarSign></CircleDollarSign>
+            Buy me a coffee
           </Button>
           <Button variant="ghost" className="cursor-pointer">
             <Settings></Settings>
+            Settings
           </Button>
         </div>
       </header>

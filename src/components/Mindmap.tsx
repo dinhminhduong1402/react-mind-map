@@ -161,7 +161,7 @@ export default function MindMap () {
     >
       <Controls />
       <MiniMap />
-      <Background gap={12} size={1} variant={BackgroundVariant.Dots}/>
+      <Background gap={12} size={1} variant={BackgroundVariant.Cross}/>
 
     </ReactFlow>
   )
