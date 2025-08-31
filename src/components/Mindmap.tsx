@@ -26,7 +26,6 @@ export default function MindMap () {
 
   const {nodes, setNodes, setcurrentActiveNodeId, currentActiveNodeId} = useMindMapStore((state) => state.node);
   const {edges, setEdges} = useMindMapStore((state) => state.edge);
-  const {updateLayout} = useMindMapStore((state) => state.layout);
   const {setCenter, getViewport } = useReactFlow()
 
   const nodeTypes: NodeTypes = useMemo(() => (
@@ -73,7 +72,6 @@ export default function MindMap () {
     const updatedNodes = applyNodeChanges(changes, nodes);
     setNodes(updatedNodes);
 
-    updateLayout()
     const selected = updatedNodes.find(n => n.selected)
     if(selected) {
       setcurrentActiveNodeId(selected.id)
@@ -85,7 +83,6 @@ export default function MindMap () {
   const onEdgesChange = (changes: EdgeChange<Edge>[]) => {
     const updatedEdges = applyEdgeChanges(changes, edges);
     setEdges(updatedEdges)
-    updateLayout()
     // sync vào project
     saveMindmapToProject();
   };
@@ -97,6 +94,56 @@ export default function MindMap () {
 
   }, [])
 
+  const onNodeDragStop = (
+    event: React.MouseEvent<Element, MouseEvent>,
+    draggedNode: Node
+  ) => {
+    const nodes = useMindMapStore.getState().node.nodes;
+    const edges = useMindMapStore.getState().edge.edges;
+
+    // tìm parent của draggedNode
+    const parentEdge = edges.find((e) => e.target === draggedNode.id);
+    const parentId = parentEdge?.source ?? null;
+
+    // lấy danh sách sibling nodes (cùng cha)
+    const siblingIds = edges
+      .filter((e) => e.source === parentId)
+      .map((e) => e.target);
+
+    const siblings = nodes.filter(
+      (n) => siblingIds.includes(n.id) && n.id !== draggedNode.id
+    );
+
+    // tìm vị trí mới trong sibling theo trục Y
+    const sortedSiblings = [...siblings].sort(
+      (a, b) => a.position.y - b.position.y
+    );
+
+    let newIndex = sortedSiblings.findIndex(
+      (n) => draggedNode.position.y < n.position.y
+    );
+    if (newIndex === -1) newIndex = sortedSiblings.length; // nằm cuối
+
+    // remove draggedNode khỏi danh sách
+    const withoutDragged = nodes.filter((n) => n.id !== draggedNode.id);
+
+    // chèn draggedNode lại vào đúng vị trí index
+    const targetIndex = withoutDragged.findIndex(
+      (n) => n.id === sortedSiblings[newIndex]?.id
+    );
+    if (targetIndex !== -1) {
+      withoutDragged.splice(targetIndex, 0, draggedNode);
+    } else {
+      withoutDragged.push(draggedNode);
+    }
+
+    // cập nhật nodes
+    useMindMapStore.getState().node.setNodes(withoutDragged);
+    useMindMapStore.getState().layout.updateLayout();
+
+    // optional: saveHistory();
+  };
+
   
   return (
     <ReactFlow
@@ -104,6 +151,7 @@ export default function MindMap () {
       nodes={nodes}
       edges={edges}
       onNodesChange={onNodesChange}
+      onNodeDragStop={onNodeDragStop}
       onEdgesChange={onEdgesChange}
       // onConnect={onConnect}
       nodeTypes={nodeTypes}

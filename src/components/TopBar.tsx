@@ -49,14 +49,14 @@ export default function TopBar({ currentProject }: TopBarProps) {
       <header
         className={`
           fixed top-0 lef-0 w-[100%] z-40 mt-1 bg-transparent
-          
+          pointer-events-none
           flex items-center justify-between px-3
         `}
       >
         {/* Project Info */}
         <div
           className="flex gap-3 bg-white rounded-md shadow-[0_0_15px_rgba(0,0,0,0.2)]
-          px-3 py-1"
+          px-3 py-1 pointer-events-auto"
           onClick={() => setOpenModal(true)}
         >
           <div className="flex items-center gap-2 cursor-pointer">
@@ -80,7 +80,7 @@ export default function TopBar({ currentProject }: TopBarProps) {
 
         <div
           className="flex gap-3 bg-white shadow-[0_0_15px_rgba(0,0,0,0.2)] rounded-md
-          px-3 py-1"
+          px-3 py-1 pointer-events-auto"
         >
           {actions.map((action, index) => (
             <TooltipProvider key={index}>
@@ -107,7 +107,7 @@ export default function TopBar({ currentProject }: TopBarProps) {
         {/* Right side (menu, button mở modal) */}
         <div
           className="flex gap-3 bg-white rounded-md shadow-[0_0_15px_rgba(0,0,0,0.2)]
-          px-3 py-1"
+          px-3 py-1 pointer-events-auto"
         >
           <Button variant="ghost" className="cursor-pointer">
             <CircleDollarSign></CircleDollarSign>
@@ -117,24 +117,6 @@ export default function TopBar({ currentProject }: TopBarProps) {
           </Button>
         </div>
       </header>
-
-      {/* Subheader hiển thị phím tắt */}
-      {/* {showSubheader && (
-        <div
-          className="
-            fixed top-[68px] left-0 right-0 z-30
-            bg-gray-50 border-t border-b border-gray-200 shadow-md 
-            px-6 py-2 flex items-center gap-6 text-sm text-gray-600 
-          "
-        >
-          <span><kbd className="px-2 py-1 bg-gray-200 rounded">Enter</kbd> → Thêm node cùng cấp</span>
-          <span><kbd className="px-2 py-1 bg-gray-200 rounded">Tab</kbd> → Thêm node con</span>
-          <span><kbd className="px-2 py-1 bg-gray-200 rounded">Delete/Backspace</kbd> → Xóa node</span>
-          <span><kbd className="px-2 py-1 bg-gray-200 rounded">Crt+Z</kbd> → undo</span>
-          <span><kbd className="px-2 py-1 bg-gray-200 rounded">Crt+Shift+Z</kbd> → redo</span>
-          <span><kbd className="px-2 py-1 bg-gray-200 rounded">Crt+Shift+F</kbd> → Auto Format Layout</span>
-        </div>
-      )} */}
 
       {/* Modal */}
       <ProjectModal isOpen={openModal} onClose={() => setOpenModal(false)} />

@@ -103,6 +103,7 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
         get().edge.setEdges([...get().edge.edges, newEdge]);
         get().node.setcurrentActiveNodeId(newNodeId);
         get().node.setcurrentFocusNodeId(newNodeId);
+        get().layout.updateLayout()
 
         return newNode;
       },
@@ -151,6 +152,7 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
 
         get().node.setcurrentActiveNodeId(newNodeId);
         get().node.setcurrentFocusNodeId(newNodeId);
+        get().layout.updateLayout()
 
         return newNode;
       },
@@ -229,6 +231,7 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
         // --- 4. Focus vào node mới
         node.setcurrentActiveNodeId(newNodeId);
         node.setcurrentFocusNodeId(newNodeId);
+        get().layout.updateLayout()
 
         return newNode;
       },
