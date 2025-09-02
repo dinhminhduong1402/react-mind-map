@@ -40,13 +40,14 @@ export default function MindMap () {
     const viewport = getViewport(); // { x, y, zoom }
 
     if (flowEl.current) {
+      console.log({selected})
       const { clientWidth, clientHeight } = flowEl.current;
 
       // chuyển node position (canvas → screen coords)
       const nodeScreenX = x * viewport.zoom + viewport.x;
       const nodeScreenY = y * viewport.zoom + viewport.y;
-      const nodeWidth = selected.width || 150
-      const nodeHeight = selected.height || 50
+      const nodeWidth = selected?.measured?.width || 150
+      const nodeHeight = selected?.measured?.height || 50
 
       const margin = 60;
       const insideViewport =
@@ -56,7 +57,8 @@ export default function MindMap () {
         nodeScreenY + nodeHeight < clientHeight - margin;
 
       if (!insideViewport) {
-        setCenter(x, y, { zoom: 1, duration: 800 });
+        console.log({nodeHeight, nodeWidth, x, y})
+        setCenter(x + nodeWidth/2, y + nodeHeight/2, { zoom: 1, duration: 800 });
       }
     }
   }, [])
