@@ -11,7 +11,7 @@ export const dbPromise = openDB('mindmap-db', 1, {
 });
 
 let timeoutId:NodeJS.Timeout|null = null
-export async function saveProject(project: any) {
+export async function saveProject(project: unknown) {
   if(timeoutId) clearTimeout(timeoutId)
   const {setIsSaving} = useProjectStore.getState()
   setIsSaving(true)

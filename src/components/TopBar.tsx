@@ -1,11 +1,14 @@
-import { useEffect, useMemo, useState } from "react";
-import { FolderKanban, Loader, CheckCircle, Settings , CircleDollarSign, Redo2, Undo2, ListCollapse, Save, Trash2, ArrowRightToLine ,ArrowLeftToLine ,ArrowDownToLine  } from "lucide-react";
+import {Node} from '@xyflow/react'
+import { useEffect, useMemo, useRef, useState } from "react";
+import { FolderKanban, Loader, CheckCircle, Settings , CircleDollarSign, Redo2, Undo2, Eye , Save, Trash2, Network  ,Workflow  ,GitFork   } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ProjectModal from "./ProjectModal"; // import modal
 // import {Node} from '@xyflow/react'
 import {saveMindmapToProject} from '@/store/syncLogic'
 import useProjectStore from "@/store/useProjectStore";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import useMindMapStore from "@/store/useMindMapStore";
+import {saveProject} from "@/helpers/indexDb"
 
 interface Project {
   project_id: string | null;
@@ -19,9 +22,50 @@ interface TopBarProps {
 export default function TopBar({ currentProject }: TopBarProps) {
   const [title, setTitle] = useState<string>("");
   const [openModal, setOpenModal] = useState(false);
-  const {isSaving} = useProjectStore()
-  // const [showSubheader, setShowSubheader] = useState(true);
+  const {isSaving, currentProjectId, projects} = useProjectStore()
+  const {node: {nodes, addChildNode, addSiblingNode, addParentNode, deleteNode, currentActiveNodeId}, history: {redo, undo, }, toggleCollapse, } = useMindMapStore()
 
+
+  const currentProjectRef = useRef(projects.find(p => p.project_id === currentProjectId))
+  useEffect(() => {
+    currentProjectRef.current = projects.find(p => p.project_id === currentProjectId)
+  }, [currentProjectId])
+
+  const selectedNodeRef = useRef(nodes.find(n => n.id === currentActiveNodeId))
+  useEffect(() => {
+      selectedNodeRef.current = nodes.find(n => n.id === currentActiveNodeId)
+  }, [currentActiveNodeId])
+  
+  type Command =
+  | "addChildNode"
+  | "addSiblingNode"
+  | "addParentNode"
+  | "deleteNode"
+  | "toggleCollapse"
+  | "redo"
+  | "undo"
+  | "saveProject"
+
+  type HandlerMap = Record<Command, () => void>
+  const createHandlers = (selectedNode: Node | undefined): HandlerMap => ({
+    addChildNode: () => selectedNode && addChildNode(selectedNode),
+    addSiblingNode: () => selectedNode && addSiblingNode(selectedNode),
+    addParentNode: () => selectedNode && addParentNode(selectedNode),
+    deleteNode: () => selectedNode && deleteNode(selectedNode.id),
+    toggleCollapse: () => selectedNode && toggleCollapse(selectedNode.id),
+    redo: () => redo(),
+    undo: () => undo(),
+    saveProject: () =>
+      currentProjectRef.current &&
+      saveProject(currentProjectRef.current),
+  })
+
+  const callHandler = (command: Command) => {
+    const handlers = createHandlers(selectedNodeRef.current)
+    handlers[command]?.()
+  }
+
+  
   useEffect(() => {
     if (currentProject?.project_title) {
       setTitle(currentProject.project_title);
@@ -30,19 +74,71 @@ export default function TopBar({ currentProject }: TopBarProps) {
     }
   }, [currentProject]);
 
-  const actions = useMemo(() => (
-    [
-      {icon: <Undo2></Undo2>, title: "Undo", shorcut: 'Crt + Z'},
-      {icon: <Redo2></Redo2>, title: "Redo", shorcut: 'Crt + Shift + Z'},
-      {icon: <ArrowRightToLine></ArrowRightToLine>, title: "Add child node", shorcut: 'Tab'},
-      {icon: <ArrowLeftToLine></ArrowLeftToLine>, title: "Add sibling node", shorcut: 'Enter'},
-      {icon: <ArrowDownToLine  ></ArrowDownToLine>, title: "Add parent node", shorcut: 'Shift + Tab'},
-      {icon: <ListCollapse  ></ListCollapse>, title: "Toggle subtree", shorcut: 'Crt + /'},
-      {icon: <Save  ></Save>, title: "Save project", shorcut: 'Crt + S'},
-      {icon: <Trash2  ></Trash2>, title: "Delete node/subtree", shorcut: 'Delete/Backspace'},
-      
-    ]
-  ), [])
+  
+  type Action = 
+    {
+      handler: Command,
+      icon: React.ReactNode,
+      title: string,
+      shorcut: string
+    }
+  
+  const actions: Action[] = useMemo(
+    () => [
+      {
+        handler: "undo",
+        icon: <Undo2></Undo2>,
+        title: "Undo",
+        shorcut: "Crt + Z",
+      },
+      {
+        handler: "redo",
+        icon: <Redo2></Redo2>,
+        title: "Redo",
+        shorcut: "Crt + Shift + Z",
+      },
+      {
+        handler: "addChildNode",
+        icon: <Workflow  ></Workflow>,
+        title: "Add child node",
+        shorcut: "Tab",
+      },
+      {
+        handler: "addSiblingNode",
+        icon: <Network></Network>,
+        title: "Add sibling node",
+        shorcut: "Enter",
+      },
+      {
+        handler: "addParentNode",
+        icon: <GitFork ></GitFork>,
+        title: "Add parent node",
+        shorcut: "Shift + Tab",
+      },
+      {
+        handler: "toggleCollapse",
+        icon: <Eye ></Eye>,
+        title: "Toggle subtree",
+        shorcut: "Crt + /",
+      },
+      {
+        handler: "saveProject",
+        icon: <Save></Save>,
+        title: "Save project",
+        shorcut: "Crt + S",
+      },
+      {
+        handler: "deleteNode",
+        icon: <Trash2></Trash2>,
+        title: "Delete node/subtree",
+        shorcut: "Delete/Backspace",
+      },
+    ],
+    []
+  );
+
+  
+  
 
   return (
     <>
@@ -77,7 +173,7 @@ export default function TopBar({ currentProject }: TopBarProps) {
             </Button>
           </div>
         </div>
-
+          {/*Middle toolbar actions*/}
         <div
           className="flex gap-3 bg-white shadow-[0_0_15px_rgba(0,0,0,0.2)] rounded-md
           px-3 py-1 pointer-events-auto"
@@ -86,7 +182,7 @@ export default function TopBar({ currentProject }: TopBarProps) {
             <TooltipProvider key={index}>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button className="cursor-pointer" variant="ghost">
+                  <Button className="cursor-pointer" variant="ghost" onClick={() => callHandler(action.handler)}>
                     {action.icon}
                   </Button>
                 </TooltipTrigger>
