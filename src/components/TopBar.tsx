@@ -207,7 +207,7 @@ export default function TopBar({ currentProject }: TopBarProps) {
           className="flex gap-3 bg-transparent rounded-md 
           px-3 py-1 pointer-events-auto"
         >
-          <Button onClick={() => setOpenDonateModal(true)} variant="ghost" className="cursor-pointer bg-amber-500 shadow-[0_0_15px_rgba(0,0,0,0.2)] text-white">
+          <Button onClick={() => setOpenDonateModal(true)} variant="ghost" className="cursor-pointer bg-yellow-200 shadow-[0_0_15px_rgba(0,0,0,0.2)]  border-solid border-2 border-orange-400 text-black">
             <Beer  ></Beer>
             Buy me a beer
           </Button>
