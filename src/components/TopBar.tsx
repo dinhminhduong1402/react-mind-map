@@ -1,6 +1,6 @@
 import {Node} from '@xyflow/react'
 import { useEffect, useMemo, useRef, useState } from "react";
-import { FolderKanban, Loader, CheckCircle, Settings , CircleDollarSign, Redo2, Undo2, Eye , Save, Trash2, Network  ,Workflow  ,GitFork   } from "lucide-react";
+import { FolderKanban, Loader, CheckCircle, Settings , Beer , Redo2, Undo2, Eye , Save, Trash2, Network  ,Workflow  ,GitFork   } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ProjectModal from "./ProjectModal"; // import modal
 // import {Node} from '@xyflow/react'
@@ -9,6 +9,7 @@ import useProjectStore from "@/store/useProjectStore";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import useMindMapStore from "@/store/useMindMapStore";
 import {saveProject} from "@/helpers/indexDb"
+import DonateModal from './DonateModal';
 
 interface Project {
   project_id: string | null;
@@ -22,6 +23,7 @@ interface TopBarProps {
 export default function TopBar({ currentProject }: TopBarProps) {
   const [title, setTitle] = useState<string>("");
   const [openModal, setOpenModal] = useState(false);
+  const [openDonateModal, setOpenDonateModal] = useState(false);
   const {isSaving, currentProjectId, projects} = useProjectStore()
   const {node: {nodes, addChildNode, addSiblingNode, addParentNode, deleteNode, currentActiveNodeId}, history: {redo, undo, }, toggleCollapse, } = useMindMapStore()
 
@@ -202,14 +204,14 @@ export default function TopBar({ currentProject }: TopBarProps) {
 
         {/* Right side (menu, button mở modal) */}
         <div
-          className="flex gap-3 bg-white rounded-md shadow-[0_0_15px_rgba(0,0,0,0.2)]
+          className="flex gap-3 bg-transparent rounded-md 
           px-3 py-1 pointer-events-auto"
         >
-          <Button variant="ghost" className="cursor-pointer">
-            <CircleDollarSign></CircleDollarSign>
-            Buy me a coffee
+          <Button onClick={() => setOpenDonateModal(true)} variant="ghost" className="cursor-pointer bg-amber-500 shadow-[0_0_15px_rgba(0,0,0,0.2)] text-white">
+            <Beer  ></Beer>
+            Buy me a beer
           </Button>
-          <Button variant="ghost" className="cursor-pointer">
+          <Button variant="ghost" className="cursor-pointer bg-white shadow-[0_0_15px_rgba(0,0,0,0.2)]">
             <Settings></Settings>
             Settings
           </Button>
@@ -218,6 +220,8 @@ export default function TopBar({ currentProject }: TopBarProps) {
 
       {/* Modal */}
       <ProjectModal isOpen={openModal} onClose={() => setOpenModal(false)} />
+      <DonateModal isOpen={openDonateModal} onClose={() => setOpenDonateModal(false)} />
+      
     </>
   );
 }
