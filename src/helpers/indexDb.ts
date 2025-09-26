@@ -24,7 +24,9 @@ export async function saveProject(project: unknown) {
 
 export async function getAllProjects() {
   const db = await dbPromise;
-  return await db.getAll('projects');
+  const projectList = await db.getAll('projects');
+  console.log(projectList)
+  return projectList
 }
 
 export async function deleteProject(id: string) {

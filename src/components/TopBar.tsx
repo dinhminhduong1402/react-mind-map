@@ -6,10 +6,12 @@ import ProjectModal from "./ProjectModal"; // import modal
 // import {Node} from '@xyflow/react'
 import {saveMindmapToProject} from '@/store/syncLogic'
 import useProjectStore from "@/store/useProjectStore";
+import useUserStore from '@/store/useUserStore';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import useMindMapStore from "@/store/useMindMapStore";
 import {saveProject} from "@/helpers/indexDb"
 import DonateModal from './DonateModal';
+
 
 interface Project {
   project_id: string | null;
@@ -26,7 +28,7 @@ export default function TopBar({ currentProject }: TopBarProps) {
   const [openDonateModal, setOpenDonateModal] = useState(false);
   const {isSaving, currentProjectId, projects} = useProjectStore()
   const {node: {nodes, addChildNode, addSiblingNode, addParentNode, deleteNode, currentActiveNodeId}, history: {redo, undo, }, toggleCollapse, } = useMindMapStore()
-
+  const {currentUser} = useUserStore()
 
   const currentProjectRef = useRef(projects.find(p => p.project_id === currentProjectId))
   useEffect(() => {
@@ -211,9 +213,16 @@ export default function TopBar({ currentProject }: TopBarProps) {
             <Beer  ></Beer>
             Buy me a beer
           </Button>
+          
+          {/* Setting */}
           <Button variant="ghost" className="cursor-pointer bg-white shadow-[0_0_15px_rgba(0,0,0,0.2)]">
             <Settings></Settings>
             Settings
+          </Button>
+          {/*User  */}
+          <Button variant="ghost" className="cursor-pointer bg-white shadow-[0_0_15px_rgba(0,0,0,0.2)]">
+            <img src={currentUser?.user_avatar} alt="avatar" width={25} height={25} className='rounded-full border-orange-500 border-2'/>
+            {currentUser?.user_name}
           </Button>
         </div>
       </header>
