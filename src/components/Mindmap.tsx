@@ -21,12 +21,15 @@ import useMindMapStore from "@/store/useMindMapStore";
 import { saveMindmapToProject } from "@/store/syncLogic";
 
 import { TextUpdaterNode } from "@/components/TextUpdaterNode";
+import {debounce} from '@/core/utils'
 
 export default function MindMap () {
 
   const {nodes, setNodes, setcurrentActiveNodeId, currentActiveNodeId} = useMindMapStore((state) => state.node);
   const {edges, setEdges} = useMindMapStore((state) => state.edge);
   const {setCenter, getViewport } = useReactFlow()
+
+  
 
   const nodeTypes: NodeTypes = useMemo(() => (
     {textUpdaterNode: TextUpdaterNode}
@@ -63,6 +66,7 @@ export default function MindMap () {
     }
   }, [])
 
+  
   useEffect(() => {
     const selected = nodes.find(n => n.selected)
     if(!selected) return
@@ -70,6 +74,10 @@ export default function MindMap () {
     
   }, [currentActiveNodeId])
 
+  const debouncedSave = useMemo(
+    () => debounce(saveMindmapToProject, 2000),
+    [saveMindmapToProject]
+  );
   const onNodesChange = (changes: NodeChange<Node>[]) => {
     const updatedNodes = applyNodeChanges(changes, nodes);
     setNodes(updatedNodes);
@@ -79,14 +87,15 @@ export default function MindMap () {
       setcurrentActiveNodeId(selected.id)
     }
       // sync vào project
-    saveMindmapToProject();
+    debouncedSave()
+    // saveMindmapToProject();
   };
-
   const onEdgesChange = (changes: EdgeChange<Edge>[]) => {
     const updatedEdges = applyEdgeChanges(changes, edges);
     setEdges(updatedEdges)
     // sync vào project
-    saveMindmapToProject();
+    debouncedSave()
+    // saveMindmapToProject();
   };
 
   useLayoutEffect(() => {

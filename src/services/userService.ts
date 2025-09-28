@@ -10,11 +10,11 @@ type UserProfile = {
 
 const baseUrl = configs.apiBaseUrl
 export default class UserService {
-  static async getUserProfile(userId: string): Promise<UserProfile>{
-    const rsBody = await apiFetch(`${baseUrl}/api/user/get-profile/${userId}`, {
+  static async getUserProfile(): Promise<UserProfile>{
+    const rsBody = await apiFetch(`${baseUrl}/api/user/get-profile`, {
       method: 'GET',
       headers: {
-        ...configs.defaultHeaders
+        ...configs.getDefaultHeaders()
       }
     }).then(rs => rs.json())
     

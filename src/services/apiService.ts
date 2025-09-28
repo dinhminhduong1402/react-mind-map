@@ -11,7 +11,7 @@ type ApiFetchOptions = {
 async function apiFetch(url: string, options: ApiFetchOptions = {}): Promise<Response> {
   
   options.headers = {
-    ...configs.defaultHeaders,
+    ...configs.getDefaultHeaders(),
     ...options.headers
   }
 
@@ -67,7 +67,7 @@ async function refreshAccessToken(refreshToken: string) {
   const res = await fetch(`${configs.apiBaseUrl}/api/auth/refreshtoken`, {
     method: "GET",
     headers: {
-      ...configs.defaultHeaders,
+      ...configs.getDefaultHeaders(),
       'x-refresh-token': refreshToken
     }
   });

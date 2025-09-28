@@ -1,30 +1,41 @@
 // useProjectStore.ts
 import { create } from 'zustand';
-import { saveProject, getAllProjects, deleteProject } from '@/helpers/indexDb';
+import { deleteProject } from '@/helpers/indexDb';
 import { Node, Edge } from '@xyflow/react';
+import {ProjectContext, ApiProjectStrategy, LocalProjectStrategy} from '@/services/projectService'
+import useUserStore from '@/store/useUserStore';
+import useMindMapStore from './useMindMapStore';
 
-export interface Project {
-  project_id: string;
-  project_title: string;
-  nodes: Node[];
-  edges: Edge[];
-  lastUpdated: string; // luôn lưu ISO string để dễ persist
+export type ProjectMin = {
+  project_id: string,
+  project_title: string,
+  nodes?: Node[],
+  edges?: Edge[],
+//   lastUpdated: string; // luôn lưu ISO string để dễ persist
+}
+
+export type Project = {
+  project_id: string,
+  project_title: string,
+  nodes: Node[],
+  edges: Edge[],
 }
 
 interface ProjectState {
-  projects: Project[];
-  currentProjectId: string | null;
+  projectList: ProjectMin[];
+  currentProject: Project | null,
+  setCurrentProject: (projectId: string) => Promise<Project | undefined>,
 
-  getCurrentProject: () => Project | null;
-  initProjects: () => Promise<void>;
-  createProject: (title: string) => void;
-  loadProject: (id: string) => void;
-  updateProject: (id: string, nodes: Node[], edges: Edge[]) => void;
-  updateProjectTitle: (id: string, title: string) => void;
-  removeProject: (id: string) => void;
+  initProjects: () => Promise<unknown>,
+  createProject: (project_title: string) => Promise<Project>,
+  updateCurrentProject: () => Promise<void>,
+  udpateProjectData: (projectUpdateData: ProjectMin) => Promise<void>,
+  removeProject: (id: string) => Promise<void>,
 
-  isSaving: boolean,
-  setIsSaving: (value: boolean) => void
+  isSaving: boolean;
+  setIsSaving: (value: boolean) => void,
+
+  projectService: () => ProjectContext,
 }
 
 const defaultProject: Project = {
@@ -43,108 +54,106 @@ const defaultProject: Project = {
     },
   ],
   edges: [],
-  lastUpdated: new Date().toISOString(),
+  // lastUpdated: new Date().toISOString(),
 };
 
 const LAST_PROJECT_ID_KEY = "mindmap-last-project-id";
 
 const useProjectStore = create<ProjectState>((set, get) => {
+  const getCurrentUser = () => useUserStore.getState().currentUser
+
   return {
-    projects: [],
-    currentProjectId: null,
     isSaving: false,
     setIsSaving: (value: boolean) => {
-      set(s => ({...s, isSaving: !!value}))
-    },
-    loadProject: (id) => {
-      set({ currentProjectId: id });
-      localStorage.setItem(LAST_PROJECT_ID_KEY, id ?? "");
+      set(() => ({ isSaving: !!value }))
     },
 
-    getCurrentProject: () => {
-      const { projects, currentProjectId } = get();
-      return projects.find((p) => p.project_id === currentProjectId) || null;
+    projectService: () => {
+      const projectService = new ProjectContext()
+      projectService.setStrategy(
+        getCurrentUser() ? new ApiProjectStrategy() : new LocalProjectStrategy()
+      )
+      return projectService
     },
-
+    projectList: [],
+    currentProject: null,
+    
     initProjects: async () => {
-      const projects = await getAllProjects();
-      const lastProjectId = localStorage.getItem(LAST_PROJECT_ID_KEY);
+      const projects = await get().projectService().getProjectList()
+      const lastProjectId = localStorage.getItem(LAST_PROJECT_ID_KEY)
 
-      if (projects.length === 0) {
-        await saveProject(defaultProject);
-        set({
-          projects: [defaultProject],
-          currentProjectId: defaultProject.project_id,
-        });
-        localStorage.setItem(LAST_PROJECT_ID_KEY, defaultProject.project_id);
+      if (projects?.length === 0) {
+        await get().projectService().create(defaultProject)
+        await get().setCurrentProject(defaultProject.project_id)
+        set({ projectList: [defaultProject] })
+        localStorage.setItem(LAST_PROJECT_ID_KEY, defaultProject.project_id)
       } else {
-        // Nếu có project trước đó thì chọn nó, không thì lấy project đầu tiên
-        const validProjectId = projects.find(p => p.project_id === lastProjectId)
-          ? lastProjectId
-          : projects[0].project_id;
-        set({
-          projects,
-          currentProjectId: validProjectId,
-        });
-        localStorage.setItem(LAST_PROJECT_ID_KEY, validProjectId ?? "");
+        if (!Array.isArray(projects)) throw new Error("Invalid projects")
+        set({projectList: projects})
+        const validProjectId =
+          projects?.findIndex(p => p.project_id === lastProjectId) > -1
+            ? lastProjectId
+            : projects?.[0].project_id
+
+        if (validProjectId) {
+          await get().setCurrentProject(validProjectId)
+          localStorage.setItem(LAST_PROJECT_ID_KEY, validProjectId ?? "")
+        }
       }
     },
 
-    createProject: (title) => {
-      const newProject: Project = {...defaultProject, project_title: title}
-      set((state) => ({
-        projects: [...state.projects, newProject],
-        currentProjectId: newProject.project_id,
-      }));
-      saveProject(newProject);
-      localStorage.setItem(LAST_PROJECT_ID_KEY, newProject.project_id);
+    setCurrentProject: async (projectId) => {
+      const project = await get().projectService().getProjectData(projectId)
+      if (project) {
+        set({ currentProject: project })
+        localStorage.setItem(LAST_PROJECT_ID_KEY, projectId ?? "")
+      }
+      return project
     },
 
-    updateProjectTitle: (id, title) => {
-      set((state) => {
-        const updatedProjects = state.projects.map((p) =>
-          p.project_id === id ? { ...p, project_title: title } : p
-        );
-
-        const updated = updatedProjects.find((p) => p.project_id === id);
-        if (updated) saveProject(updated);
-
-        return { projects: updatedProjects };
-      });
+    createProject: async (title) => {
+      // udpate to store
+      const newProject: Project = { ...defaultProject, project_title: title }
+      set(state => ({
+        projectList: [...state.projectList, newProject],
+        currentProject: newProject,
+      }))
+      // update to databsae
+      await get().projectService().create(newProject)
+      localStorage.setItem(LAST_PROJECT_ID_KEY, newProject.project_id)
+      return newProject
     },
 
-    updateProject: (id, nodes, edges) => {
-      set((state) => {
-        const updatedProjects = state.projects.map((p) =>
-          p.project_id === id
-            ? { ...p, nodes, edges, lastUpdated: new Date().toISOString() }
-            : p
-        );
+    updateCurrentProject: async () => {
+      const currentProject = get().currentProject
+      if (currentProject) {
+        const nodes = useMindMapStore.getState().node.nodes
+        const edges = useMindMapStore.getState().edge.edges
 
-        const updated = updatedProjects.find((p) => p.project_id === id);
-        if (updated) saveProject(updated);
-
-        return { projects: updatedProjects };
-      });
+        const updatedProject = { ...currentProject, nodes, edges }
+        await get().projectService().updateProject(updatedProject)
+      }
     },
 
-    removeProject: (id: string) => {
-      set((state) => {
-        const filtered = state.projects.filter((p) => p.project_id !== id);
-        let newCurrentId = state.currentProjectId;
-        if (state.currentProjectId === id) {
-          newCurrentId = filtered.length > 0 ? filtered[0].project_id : null;
-          localStorage.setItem(LAST_PROJECT_ID_KEY, newCurrentId ?? "");
+    udpateProjectData: async (updateData) => {
+      get().projectService().updateProject(updateData)
+    },
+
+    removeProject: async (id: string) => {
+      set(state => {
+        const filtered = state.projectList.filter(p => p.project_id !== id)
+        let newCurrentId = state.currentProject?.project_id
+        if (newCurrentId === id) {
+          newCurrentId =
+            filtered.length > 0 ? filtered[0].project_id : undefined
+          localStorage.setItem(LAST_PROJECT_ID_KEY, newCurrentId ?? "")
         }
-        return {
-          projects: filtered,
-          currentProjectId: newCurrentId,
-        };
-      });
-      deleteProject(id)
+        return { projectList: filtered }
+      })
+      await deleteProject(id)
     },
-    
   }
-});
+})
+
 
 export default useProjectStore;

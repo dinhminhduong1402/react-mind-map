@@ -9,31 +9,19 @@ import useProjectStore from "@/store/useProjectStore";
 import useUserStore from '@/store/useUserStore';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import useMindMapStore from "@/store/useMindMapStore";
-import {saveProject} from "@/helpers/indexDb"
 import DonateModal from './DonateModal';
+import { useToastStore } from '@/store/useToastStore';
 
 
-interface Project {
-  project_id: string | null;
-  project_title: string | null;
-}
-
-interface TopBarProps {
-  currentProject: Project | null;
-}
-
-export default function TopBar({ currentProject }: TopBarProps) {
+export default function TopBar() {
   const [title, setTitle] = useState<string>("");
   const [openModal, setOpenModal] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [openDonateModal, setOpenDonateModal] = useState(false);
-  const {isSaving, currentProjectId, projects} = useProjectStore()
+  const {currentProject, updateCurrentProject} = useProjectStore()
   const {node: {nodes, addChildNode, addSiblingNode, addParentNode, deleteNode, currentActiveNodeId}, history: {redo, undo, }, toggleCollapse, } = useMindMapStore()
   const {currentUser} = useUserStore()
-
-  const currentProjectRef = useRef(projects.find(p => p.project_id === currentProjectId))
-  useEffect(() => {
-    currentProjectRef.current = projects.find(p => p.project_id === currentProjectId)
-  }, [currentProjectId])
+  const {addToast} = useToastStore()
 
   const selectedNodeRef = useRef(nodes.find(n => n.id === currentActiveNodeId))
   useEffect(() => {
@@ -59,16 +47,16 @@ export default function TopBar({ currentProject }: TopBarProps) {
     toggleCollapse: () => selectedNode && toggleCollapse(selectedNode.id),
     redo: () => redo(),
     undo: () => undo(),
-    saveProject: () =>
-      currentProjectRef.current &&
-      saveProject(currentProjectRef.current),
+    saveProject: async () => {
+      addToast("Đang lưu", "process")
+      await updateCurrentProject()
+      addToast("Đã lưu", "success")
+    }
   })
-
   const callHandler = (command: Command) => {
     const handlers = createHandlers(selectedNodeRef.current)
     handlers[command]?.()
   }
-
   
   useEffect(() => {
     if (currentProject?.project_title) {
@@ -86,7 +74,6 @@ export default function TopBar({ currentProject }: TopBarProps) {
       title: string,
       shorcut: string
     }
-  
   const actions: Action[] = useMemo(
     () => [
       {
@@ -140,9 +127,6 @@ export default function TopBar({ currentProject }: TopBarProps) {
     ],
     []
   );
-
-  
-  
 
   return (
     <>

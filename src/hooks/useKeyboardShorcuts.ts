@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 import useMindMapStore from "../store/useMindMapStore";
-import { saveProject } from "@/helpers/indexDb";
 import useProjectStore from "@/store/useProjectStore";
 
 export default function useKeyboardShortcuts() {
@@ -8,7 +7,6 @@ export default function useKeyboardShortcuts() {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const { nodes, currentActiveNodeId} = useMindMapStore.getState().node;
-      const { edges} = useMindMapStore.getState().edge;
 
       // no need selected node
       if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "f") {
@@ -34,12 +32,8 @@ export default function useKeyboardShortcuts() {
       }
 
       if(e.ctrlKey && e.key === 's') {
-        const {updateProject, currentProjectId, projects} = useProjectStore.getState()
-        if(currentProjectId) {
-          updateProject(currentProjectId, nodes, edges)
-          const currentProject = projects.find(p => p.project_id === currentProjectId)
-          saveProject(currentProject)
-        }
+        const {updateCurrentProject,} = useProjectStore.getState()
+        updateCurrentProject()
         e.preventDefault()
         return 0
       }

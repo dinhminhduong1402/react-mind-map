@@ -11,17 +11,16 @@ type UserInfo = {
 interface UserState {
   currentUser: UserInfo | null,
 
-  setCurrentUser: (userId: string | null ) => Promise<UserInfo | null>
+  setCurrentUser: () => Promise<UserInfo | null>
 }
 
 const useUserStore = create<UserState>(
   (set, get) => ({
     currentUser: null,
 
-    async setCurrentUser(userId) {
+    async setCurrentUser() {
       try {
-        if(!userId) throw new Error("Anonymouse User")
-        const userProfile = await UserService.getUserProfile(userId)
+        const userProfile = await UserService.getUserProfile()
         // console.log({userProfile})
         set(() => ({
           currentUser: {

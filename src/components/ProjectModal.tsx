@@ -9,11 +9,12 @@ interface ProjectModalProps {
 }
 
 export default function ProjectModal({ isOpen, onClose }: ProjectModalProps) {
-  const { projects, createProject, updateProjectTitle, removeProject, loadProject } =
+  const { projectList, createProject, removeProject, setCurrentProject } =
     useProjectStore();
   const [newTitle, setNewTitle] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState("");
+  const { udpateProjectData } = useProjectStore()
 
   const handleAdd = () => {
     if (newTitle.trim()) {
@@ -24,14 +25,14 @@ export default function ProjectModal({ isOpen, onClose }: ProjectModalProps) {
 
   const handleUpdate = (id: string) => {
     if (editingTitle.trim()) {
-      updateProjectTitle(id, editingTitle.trim());
+      udpateProjectData({project_id: id, project_title: editingTitle.trim()});
       setEditingId(null);
       setEditingTitle("");
     }
   };
 
   const handleOpen = (id: string) => {
-    loadProject(id);   // ✅ đổi currentProjectId trong store
+    setCurrentProject(id);   // ✅ đổi currentProjectId trong store
     onClose();         // ✅ đóng modal
   };
 
@@ -60,10 +61,10 @@ export default function ProjectModal({ isOpen, onClose }: ProjectModalProps) {
 
             {/* Content */}
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
-              {projects.length === 0 && (
+              {projectList.length === 0 && (
                 <p className="text-gray-500">No projects yet.</p>
               )}
-              {projects.map((p) => (
+              {projectList.map((p) => (
                 <div
                   key={p.project_id}
                   className="flex items-center justify-between bg-gray-50 p-3 rounded-xl shadow-sm"

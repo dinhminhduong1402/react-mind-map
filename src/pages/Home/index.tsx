@@ -17,46 +17,37 @@ import useUserStore from "@/store/useUserStore";
 export default function Home() {
   const [isOpenLoginModal, setIsOpenLoginModal] = useState(false)
 
-  const {currentProjectId, initProjects, getCurrentProject} = useProjectStore();
+  const {currentProject, initProjects} = useProjectStore();
   const {addToast, removeToast} = useToastStore()
   const {setCurrentUser} = useUserStore()
   
   useEffect(() => {
-    //check user
-    setCurrentUser(localStorage.getItem('userId')).then(
-      user => {
-        console.log({user})
-        if(!user) {
-            setIsOpenLoginModal(true)
-        }
+    setCurrentUser()
+    .then(user => {
+      if(!user) {
+        setIsOpenLoginModal(true)
       }
-    )
+      console.log({user})
+      // load projects
+      initProjects()
+    })
     
-    // load projects
-    initProjects()
   }, [])
 
   useKeyboardShortcuts()
 
    // Khi switch project → load nodes/edges vào mindmap
-  let currentProject = getCurrentProject();
   useUpdateEffect(() => {
-    if (currentProjectId) {
-      const id = addToast("Loaded project", "process");
-
-      loadProjectToMindmap(currentProjectId);
-
-      setTimeout(() => {
-        removeToast(id);
-        addToast("Loaded project", "success");
-      }, 500);
+    if (currentProject) {
+      console.log({currentProject})
+      loadProjectToMindmap();
     }
-    currentProject = getCurrentProject()
-  }, [currentProjectId]);
+    
+  }, [currentProject]);
   
   return (
     <div style={{ width: "100vw", height: "100vh" }}>
-      <TopBar currentProject={currentProject} />
+      <TopBar />
       <div  style={{ width: "100vw", height: "100vh"}}>
         <ReactFlowProvider><MindMap/></ReactFlowProvider>
       </div>
