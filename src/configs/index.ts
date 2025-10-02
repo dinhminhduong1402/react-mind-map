@@ -1,5 +1,6 @@
 const configs = {
-  apiBaseUrl: 'http://localhost:4000',
+  apiBaseUrl: 'https://fmm-3brf5aa2rq-as.a.run.app',
+  // apiBaseUrl: 'http://localhost:4000',
   getDefaultHeaders() {
      return {
         "Content-Type": "application/json",

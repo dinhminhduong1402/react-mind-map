@@ -17,7 +17,7 @@ export default function LoginModal({ isOpen, onClose }: ProjectModalProps) {
   const loginWithGoogleOAuth = useCallback(() => {
     AccessService.getGoogleOAuthLoginUrl()
     .then(url => {
-      window.open(url, 'blank')
+      window.open(url, '_self')
     })
     .catch(err => {
       console.error(err)

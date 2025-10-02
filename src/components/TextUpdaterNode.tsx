@@ -4,7 +4,7 @@ import TextEditor from "./TextEditor";
 import useMindMapStore from "../store/useMindMapStore";
 import { Circle , CircleCheckBig , Minus , Plus  } from "lucide-react";
 import useKeyBoardManager from "@/core/useKeyBoardManger";
-
+import { motion } from "framer-motion";
 
 
 const icons: Record<string, ReactNode > = {
@@ -153,50 +153,90 @@ export function TextUpdaterNode({ id, data, selected }: NodeProps) {
   }, [currentActiveNodeId])
 
   return (
-    <div ref={nodeRef} tabIndex={-1} onKeyDown={onKeyDown}>
-      <Handle type="target" position={Position.Left} />
-      <div 
-        className={`
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{
+        opacity: data?.isDeleting || data?.isHidding ? 0 : 1,
+        scale: data?.isDeleting || data?.isHidding ? 0.9 : 1,
+      }}
+      exit={{ opacity: 0, scale: 0.9 }}
+      transition={
+        { 
+          opacity: {duration: 0.3, ease: 'easeInOut'},
+          scale: {duration: 0.3, ease: 'easeInOut'}
+        } 
+      }
+      className={`${data?.isDragging ? "dragging" : ""}`}
+    >
+      <div ref={nodeRef} tabIndex={-1} onKeyDown={onKeyDown}>
+        <Handle type="target" position={Position.Left} />
+        <div
+          className={`
           rounded-lg relative
            hover:shadow-[0_0_15px_rgba(0,0,0,0.2)] border-4 hover:border-purple-400 
           transition-all duration-200
 
-          ${isRoot && selected ? "bg-yellow-200 border-2 border-purple-400 shadow-lg p-3" : ""}
-          ${isRoot && !selected ? "bg-yellow-200 border-2 border-orange-300 shadow-lg p-3" : ""}
-          ${!isRoot && selected && !isDeepNode ? "bg-purple-100 border-4 border-purple-400 shadow-md px-2 py-0" : ""}
-          ${!isRoot && !selected && !isDeepNode ? "border-2 px-2 py-0 bg-gray-100 border-gray-300" : ""}
+          ${
+            isRoot && selected
+              ? "bg-yellow-200 border-2 border-purple-400 shadow-lg p-3"
+              : ""
+          }
+          ${
+            isRoot && !selected
+              ? "bg-yellow-200 border-2 border-orange-300 shadow-lg p-3"
+              : ""
+          }
+          ${
+            !isRoot && selected && !isDeepNode
+              ? "bg-purple-100 border-4 border-purple-400 shadow-md px-2 py-0"
+              : ""
+          }
+          ${
+            !isRoot && !selected && !isDeepNode
+              ? "border-2 px-2 py-0 bg-gray-100 border-gray-300"
+              : ""
+          }
 
-          ${isDeepNode && !selected ? "bg-transparent border-transparent  px-2" : ""}
-          ${isDeepNode && selected ? "bg-purple-100 border-4 border-purple-400 shadow-md px-2" : ""}
+          ${
+            isDeepNode && !selected
+              ? "bg-transparent border-transparent  px-2"
+              : ""
+          }
+          ${
+            isDeepNode && selected
+              ? "bg-purple-100 border-4 border-purple-400 shadow-md px-2"
+              : ""
+          }
 
-          ${data?.completed ? 'line-through' : ''}
+          ${data?.completed ? "line-through" : ""}
         `}
-      >
-        {/* Nút collapse / expand */}
-        {!isRoot && !isLeafNode && (
-           <button
+        >
+          {/* Nút collapse / expand */}
+          {!isRoot && !isLeafNode && (
+            <button
               onClick={handleToggle}
               className="absolute top-1/2 -right-4 transform border-2 -translate-y-1/2 bg-white rounded-full z-10 text-[10px] cursor-pointer text-gray-500 h-5 w-5"
             >
               {data?.collapsed ? childNodesCount : icons.minus}
             </button>
-        )}
+          )}
 
-        {/* Nút đánh dấu đã hoàn thành */}
-        {!isRoot && (
-           <button
+          {/* Nút đánh dấu đã hoàn thành */}
+          {!isRoot && (
+            <button
               onClick={handleCompleted}
               className="absolute top-1/2 -left-4 transform -translate-y-1/2 bg-white hover:bg-gray-100 text-xs  rounded-full z-10 cursor-pointer h-5 w-5"
             >
-                {data?.completed ? icons.completed : icons.pending}
+              {data?.completed ? icons.completed : icons.pending}
             </button>
-        )}
-        
-        {/* Nội dung editor */}
-        <TextEditor text={content} id={id} nodeData={data} />
-      </div>
+          )}
 
-      <Handle type="source" position={Position.Right}  id="a"/>
-    </div>
+          {/* Nội dung editor */}
+          <TextEditor text={content} id={id} nodeData={data} />
+        </div>
+
+        <Handle type="source" position={Position.Right} id="a" />
+      </div>
+    </motion.div>
   );
 }

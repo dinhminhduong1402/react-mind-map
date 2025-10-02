@@ -75,6 +75,9 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
       addChildNode: (selectedNode) => {
         const newNodeId = `node-${crypto.randomUUID().toString()}`;
         // console.log({width: selectedNode.measured?.width})
+        if(selectedNode.data?.collapsed) {
+          get().toggleCollapse(selectedNode.id)
+        }
         const childPosition = {
           x:
             (selectedNode.position?.x || 0) +
@@ -95,6 +98,7 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
           id: `edge-${selectedNode.id}-${newNodeId}`,
           source: selectedNode.id,
           target: newNodeId,
+          type: "myEdge",
         };
 
         saveHistory();
@@ -103,7 +107,7 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
         get().edge.setEdges([...get().edge.edges, newEdge]);
         get().node.setcurrentActiveNodeId(newNodeId);
         get().node.setcurrentFocusNodeId(newNodeId);
-        get().layout.updateLayout()
+        get().layout.updateLayout();
 
         return newNode;
       },
@@ -146,13 +150,14 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
             id: `edge-${parentEdge.source}-${newNodeId}`,
             source: parentEdge.source,
             target: newNodeId,
+            type: "myEdge",
           };
           get().edge.setEdges([...get().edge.edges, newEdge]);
         }
 
         get().node.setcurrentActiveNodeId(newNodeId);
         get().node.setcurrentFocusNodeId(newNodeId);
-        get().layout.updateLayout()
+        get().layout.updateLayout();
 
         return newNode;
       },
@@ -178,6 +183,7 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
           id: `edge-${newNodeId}-${selectedNode.id}`,
           source: newNodeId,
           target: selectedNode.id,
+          type: "myEdge",
         };
 
         saveHistory();
@@ -221,6 +227,7 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
             id: `edge-${oldParentEdge.source}-${newNodeId}`,
             source: oldParentEdge.source,
             target: newNodeId,
+            type: "myEdge",
           });
         }
 
@@ -231,7 +238,7 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
         // --- 4. Focus vào node mới
         node.setcurrentActiveNodeId(newNodeId);
         node.setcurrentFocusNodeId(newNodeId);
-        get().layout.updateLayout()
+        get().layout.updateLayout();
 
         return newNode;
       },
@@ -242,6 +249,8 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
           console.warn("⚠️ Không thể xóa node gốc (root)!");
           return;
         }
+        // Lưu lịch sử trước
+        saveHistory();
 
         const { node, edge } = get();
         const setCurrentActiveNodeId = node.setcurrentActiveNodeId;
@@ -290,32 +299,62 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
         const nodesToDelete = new Set([nodeId]);
         const queue = [nodeId];
 
+        // BFS tìm tất cả con cháu
         while (queue.length > 0) {
           const parent = queue.shift();
+
+          // Node
+          const nodeItem = node.nodes.find((n) => n.id === parent);
+          if (nodeItem) {
+            if (!nodeItem.data) nodeItem.data = {};
+            nodeItem.data.isDeleting = true;
+          }
+
+          // Edge + child nodes
           const childEdges = edge.edges.filter((e) => e.source === parent);
           childEdges.forEach((e) => {
-            if (!nodesToDelete.has(e.target)) {
-              nodesToDelete.add(e.target);
-              queue.push(e.target);
+            if (!e.data) e.data = {};
+            e.data.isDeleting = true;
+
+            const childId = e.target;
+            if (!nodesToDelete.has(childId)) {
+              nodesToDelete.add(childId);
+              queue.push(childId);
             }
           });
         }
 
-        saveHistory();
-        node.setNodes(node.nodes.filter((n) => !nodesToDelete.has(n.id)));
-
+        node.setNodes(
+          node.nodes.map((n) => {
+            if (!nodesToDelete.has(n.id)) return n;
+            return { ...n, data: { ...n.data, isDeleting: true } };
+          })
+        );
         edge.setEdges(
-          edge.edges.filter(
-            (e) => !nodesToDelete.has(e.source) && !nodesToDelete.has(e.target)
-          )
+          edge.edges.map((e) => {
+            if (!nodesToDelete.has(e.source) && !nodesToDelete.has(e.target)) {
+              return e;
+            }
+            return { ...e, data: { ...e.data, isDeleting: true } };
+          })
         );
 
-        // --- Cuối cùng: focus node kế tiếp
-        if (nextFocusId) {
-          setCurrentActiveNodeId(nextFocusId);
-        }
+        // Sau animation xong (~200ms), remove thật
+        setTimeout(() => {
+          node.setNodes(node.nodes.filter((n) => !nodesToDelete.has(n.id)));
+          edge.setEdges(
+            edge.edges.filter(
+              (e) =>
+                !nodesToDelete.has(e.source) && !nodesToDelete.has(e.target)
+            )
+          );
 
-        get().layout.updateLayout();
+          // focus node kế tiếp nếu có
+          if (nextFocusId) {
+            setCurrentActiveNodeId(nextFocusId);
+          }
+          get().layout.updateLayout();
+        }, 200);
       },
 
       setNodes: (nodes) => {
@@ -434,7 +473,7 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
         const uncles = edge.edges
           .filter((e) => e.source === grandParentId)
           .map((e) => e.target);
-        
+
         uncles.sort(
           (a, b) =>
             node.nodes.findIndex((n) => n.id === a) -
@@ -633,42 +672,87 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
 
         const newCollapsed = !node.data?.collapsed;
 
-        // cập nhật node gốc toggle
+        // cập nhật node gốc toggle (KHÔNG ẩn node này)
         nodesMap.set(id, {
           ...node,
-          data: { ...node.data, collapsed: newCollapsed },
+          data: {
+            ...node.data,
+            collapsed: newCollapsed,
+            // isHidding: newCollapsed,
+          },
         });
 
-        // hàm đệ quy để ẩn/hiện con cháu
+        // Hàm helper ẩn có animation
+        const hideWithAnimation = (edge: Edge, child: Node) => {
+          edgesMap.set(edge.id, {
+            ...edge,
+            data: { ...edge.data, isHidding: true },
+          });
+          nodesMap.set(child.id, {
+            ...child,
+            data: { ...child.data, isHidding: true },
+          });
+
+          setTimeout(() => {
+            edgesMap.set(edge.id, {
+              ...edge,
+              hidden: true,
+              data: { ...edge.data, isHidding: false },
+            });
+            nodesMap.set(child.id, {
+              ...child,
+              hidden: true,
+              data: { ...child.data, isHidding: false },
+            });
+          }, 200);
+        };
+
+        // Hàm đệ quy để ẩn/hiện con cháu
         const toggleChildren = (parentId: string, hiddenByParent: boolean) => {
           for (const e of state.edge.edges) {
-            if (e.source === parentId) {
-              const child = nodesMap.get(e.target);
-              if (!child) continue;
+            if (e.source !== parentId) continue;
 
-              // Nếu cha đang collapse => ẩn luôn con
-              if (hiddenByParent) {
+            const child = nodesMap.get(e.target);
+            if (!child) continue;
+
+            if (!e.data) e.data = {};
+            if (!child.data) child.data = {};
+
+            // Trường hợp cha collapsed hoặc bị ẩn theo cha
+            if (hiddenByParent) {
+              // chỉ animate nếu chưa hidden
+              if (!child.hidden) {
+                hideWithAnimation(e, child);
+              } else {
+                // đã hidden thì giữ nguyên, không animate lại
                 edgesMap.set(e.id, { ...e, hidden: true });
                 nodesMap.set(child.id, { ...child, hidden: true });
+              }
+              toggleChildren(child.id, true);
+            } else {
+              // Cha expand → hiện edge & child
+              edgesMap.set(e.id, {
+                ...e,
+                hidden: false,
+                data: { ...e.data, isHidding: false },
+              });
+              nodesMap.set(child.id, {
+                ...child,
+                hidden: false,
+                data: { ...child.data, isHidding: false },
+              });
 
-                // Ẩn luôn con cháu
+              // Nếu child cũng collapsed → vẫn phải ẩn con cháu của nó
+              if (child.data?.collapsed) {
                 toggleChildren(child.id, true);
               } else {
-                // Cha expand → chỉ hiện nếu child KHÔNG collapse
-                edgesMap.set(e.id, { ...e, hidden: false });
-                nodesMap.set(child.id, { ...child, hidden: false });
-
-                if (!child.data?.collapsed) {
-                  toggleChildren(child.id, false);
-                } else {
-                  // Child vẫn collapsed thì ẩn con cháu của nó
-                  toggleChildren(child.id, true);
-                }
+                toggleChildren(child.id, false);
               }
             }
           }
         };
 
+        // Bắt đầu từ node gốc
         toggleChildren(id, newCollapsed);
 
         return {
@@ -682,15 +766,20 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
           },
         };
       });
+
       get().layout.updateLayout();
 
-      //force render
+      // force render
       get().node.setcurrentActiveNodeId(new Date().getTime().toString());
-      setTimeout(() => {
-        get().node.setcurrentActiveNodeId(id);
-        get().node.setcurrentFocusNodeId(''); // clear focus to text editor
-      }, 50);
+      get().node.setcurrentActiveNodeId(id);
+
+      // clear focus to text editor
+      get().node.setcurrentFocusNodeId(""); 
+      // setTimeout(() => {
+        
+      // }, 50);
     },
+
     toggleCompleted: (nodeId) => {
       set((state) => ({
         node: {
@@ -738,11 +827,10 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
             redo: get().history.redo,
           },
         });
-        const selectedNode = get().node.nodes.find(n => n.selected)
-        if(selectedNode) {
-          get().node.setcurrentActiveNodeId(selectedNode.id)
+        const selectedNode = get().node.nodes.find((n) => n.selected);
+        if (selectedNode) {
+          get().node.setcurrentActiveNodeId(selectedNode.id);
         }
-        
       },
       redo: () => {
         const { past, future } = get().history;
@@ -765,14 +853,13 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
             redo: get().history.redo,
           },
         });
-        const selectedNode = get().node.nodes.find(n => n.selected)
-        if(selectedNode) {
-          get().node.setcurrentActiveNodeId(selectedNode.id)
+        const selectedNode = get().node.nodes.find((n) => n.selected);
+        if (selectedNode) {
+          get().node.setcurrentActiveNodeId(selectedNode.id);
         }
       },
     },
   };
-
 
 });
 

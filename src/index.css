@@ -9,6 +9,12 @@ body {
   height: 100vh;
 }
 
+:focus {
+  outline: none;
+  /* box-shadow: 0 0 0 2px var(--ring); */
+  /* border-color: var(--ring); */
+}
+
 
 .react-flow__handle.connectionindicator {
   visibility: hidden !important;

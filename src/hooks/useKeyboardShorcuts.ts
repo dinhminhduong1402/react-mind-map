@@ -1,11 +1,12 @@
 import { useEffect } from "react";
 import useMindMapStore from "../store/useMindMapStore";
 import useProjectStore from "@/store/useProjectStore";
+import { useToastStore } from "@/store/useToastStore";
 
 export default function useKeyboardShortcuts() {
-  
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
+    const handleKeyDown = async (e: KeyboardEvent) => {
+      const {addToast, removeToast} = useToastStore.getState()
       const { nodes, currentActiveNodeId} = useMindMapStore.getState().node;
 
       // no need selected node
@@ -32,9 +33,13 @@ export default function useKeyboardShortcuts() {
       }
 
       if(e.ctrlKey && e.key === 's') {
-        const {updateCurrentProject,} = useProjectStore.getState()
-        updateCurrentProject()
         e.preventDefault()
+
+        const {updateCurrentProject,} = useProjectStore.getState()
+        const id = addToast("Saving...", "process")
+        await updateCurrentProject()
+        removeToast(id)
+        addToast("Saved!", "success")
         return 0
       }
       

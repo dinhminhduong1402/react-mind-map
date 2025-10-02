@@ -46,7 +46,7 @@ export default function TailwindTextEditor({ id, text }: TextEditorProps) {
     if(!el) return
 
     setIsEditing(true)
-    setShowToolbar(true)
+    // setShowToolbar(true)
     setTimeout(() => {
       el.focus()
       selectContent(el)
@@ -171,7 +171,7 @@ export default function TailwindTextEditor({ id, text }: TextEditorProps) {
         <div
           ref={toolbarRef}
           style={{ transform: 'translateY(-100%)' }}
-          className="absolute top-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg p-2 z-10 flex items-center gap-1 whitespace-nowrap"
+          className="absolute top-0 left-0 bg-white border border-gray-200 rounded-lg shadow-lg p-2 z-10 flex items-center gap-1 whitespace-nowrap"
         >
           <button onClick={(e) => execCommand(e, 'bold')} className="p-1 rounded hover:bg-gray-100"><FiBold /></button>
           <button onClick={(e) => execCommand(e, 'italic')} className="p-1 rounded hover:bg-gray-100"><FiItalic /></button>

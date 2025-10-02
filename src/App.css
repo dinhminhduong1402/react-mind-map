@@ -118,3 +118,20 @@
     @apply bg-background text-foreground;
   }
 }
+
+@keyframes dash {
+  to {
+    stroke-dashoffset: -10;
+  }
+}
+
+.react-flow__node {
+  transition: transform 0.3s ease-in-out;
+}
+
+.dragging.react-flow__node {
+  transition: none !important;
+} 
+/* .react-flow__edge-path {
+  transition: d 0.3s ease-in-out;
+} */

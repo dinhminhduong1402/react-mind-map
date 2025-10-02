@@ -125,6 +125,7 @@ const useProjectStore = create<ProjectState>((set, get) => {
     },
 
     updateCurrentProject: async () => {
+      get().setIsSaving(true)
       const currentProject = get().currentProject
       if (currentProject) {
         const nodes = useMindMapStore.getState().node.nodes
@@ -133,10 +134,13 @@ const useProjectStore = create<ProjectState>((set, get) => {
         const updatedProject = { ...currentProject, nodes, edges }
         await get().projectService().updateProject(updatedProject)
       }
+      setTimeout(() => {
+        get().setIsSaving(false)
+      }, 1000)
     },
 
     udpateProjectData: async (updateData) => {
-      get().projectService().updateProject(updateData)
+      await get().projectService().updateProject(updateData)
     },
 
     removeProject: async (id: string) => {

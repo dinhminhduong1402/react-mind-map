@@ -12,16 +12,18 @@ import {
   NodeTypes,
   BackgroundVariant,
   useReactFlow,
+  EdgeTypes,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useMemo} from "react";
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useMemo} from "react";
 
 import useMindMapStore from "@/store/useMindMapStore";
 import { saveMindmapToProject } from "@/store/syncLogic";
 
 import { TextUpdaterNode } from "@/components/TextUpdaterNode";
 import {debounce} from '@/core/utils'
+import MyEdge from "./MyEdge";
 
 export default function MindMap () {
 
@@ -33,6 +35,9 @@ export default function MindMap () {
 
   const nodeTypes: NodeTypes = useMemo(() => (
     {textUpdaterNode: TextUpdaterNode}
+  ), [])
+  const edgeTypes: EdgeTypes = useMemo(() => (
+    {myEdge: MyEdge}
   ), [])
 
   const flowEl = useRef<HTMLDivElement>(null)
@@ -61,7 +66,7 @@ export default function MindMap () {
 
       if (!insideViewport) {
         console.log({nodeHeight, nodeWidth, x, y})
-        setCenter(x + nodeWidth/2, y + nodeHeight/2, { zoom: 1, duration: 800 });
+        setCenter(x + nodeWidth/2, y + nodeHeight/2, { zoom: 1, duration: 600 });
       }
     }
   }, [])
@@ -75,10 +80,11 @@ export default function MindMap () {
   }, [currentActiveNodeId])
 
   const debouncedSave = useMemo(
-    () => debounce(saveMindmapToProject, 2000),
+    () => debounce(saveMindmapToProject, 1000),
     [saveMindmapToProject]
   );
   const onNodesChange = (changes: NodeChange<Node>[]) => {
+    console.log('=========on node change')
     const updatedNodes = applyNodeChanges(changes, nodes);
     setNodes(updatedNodes);
 
@@ -91,6 +97,7 @@ export default function MindMap () {
     // saveMindmapToProject();
   };
   const onEdgesChange = (changes: EdgeChange<Edge>[]) => {
+    console.log('==========on edge change')
     const updatedEdges = applyEdgeChanges(changes, edges);
     setEdges(updatedEdges)
     // sync vào project
@@ -148,13 +155,54 @@ export default function MindMap () {
     } else {
       withoutDragged.push(draggedNode);
     }
-
+    
     // cập nhật nodes
     useMindMapStore.getState().node.setNodes(withoutDragged);
     useMindMapStore.getState().layout.updateLayout();
 
     // optional: saveHistory();
+
+    // === remove isDragging flag
+    const nodeStore = nodes.find(n => n.id === draggedNode.id)
+    if(nodeStore) {
+      nodeStore.data.isDragging = false
+    }
+    const relatedEdges = edges.filter(e => {
+      return e.target === draggedNode.id || e.source === draggedNode.id
+    })
+    relatedEdges.forEach(e => {
+      if(!e.data) {
+        e.data = {}
+      }
+      e.data.isDragging = false
+    })
+    // setNodes(nodes)
+    // setEdges(edges)
+
+    
   };
+
+  const onNodeDragStart = (event: React.MouseEvent, node: Node) => {
+    console.log({event, node})
+    // set node data isDragging = true to prevent react flow render node many time and edge unexpected animation 
+    const nodeStore = nodes.find(n => n.id === node.id)
+    if(nodeStore) {
+      nodeStore.data.isDragging = true
+    }
+    const relatedEdges = edges.filter(e => {
+      return e.target === node.id || e.source === node.id
+    })
+    relatedEdges.forEach(e => {
+      if(!e.data) {
+        e.data = {}
+      }
+      e.data.isDragging = true
+    })
+
+    // setNodes(nodes)
+    // setEdges(edges)
+    // 
+  }
 
   
   return (
@@ -163,10 +211,13 @@ export default function MindMap () {
       nodes={nodes}
       edges={edges}
       onNodesChange={onNodesChange}
+      // onNodeDragStart={(event, node) => debounce(onNodeDragStart, 50)(event, node)}
+      onNodeDragStart={onNodeDragStart}
       onNodeDragStop={onNodeDragStop}
       onEdgesChange={onEdgesChange}
       // onConnect={onConnect}
       nodeTypes={nodeTypes}
+      edgeTypes={edgeTypes} 
       // nodesSelectable={true}
       deleteKeyCode={[]}
       fitView={false}
