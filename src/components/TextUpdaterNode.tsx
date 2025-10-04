@@ -158,6 +158,7 @@ export function TextUpdaterNode({ id, data, selected }: NodeProps) {
       animate={{
         opacity: data?.isDeleting || data?.isHidding ? 0 : 1,
         scale: data?.isDeleting || data?.isHidding ? 0.9 : 1,
+        // visibility: data?.isHidding ? "hidden" : "visible",
       }}
       exit={{ opacity: 0, scale: 0.9 }}
       transition={

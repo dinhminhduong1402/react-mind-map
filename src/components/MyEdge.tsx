@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { memo } from "react";
 
 function MyEdge(props: EdgeProps & { isDeleting?: boolean, isHidding?: boolean , isDragging?: boolean}) {
-  const [edgePath] = getBezierPath(props);
+  const [edgePath] = getBezierPath(props) || [""]
   const isDeleting = props.data?.isDeleting
   const isHidding = props.data?.isHidding
   const isDragging = props.data?.isDragging

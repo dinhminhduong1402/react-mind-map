@@ -1,6 +1,7 @@
+const isDev = import.meta.env.MODE == 'development'
+console.log('====================ENV==================', {isDev})
 const configs = {
-  apiBaseUrl: 'https://fmm-3brf5aa2rq-as.a.run.app',
-  // apiBaseUrl: 'http://localhost:4000',
+  apiBaseUrl: isDev ? 'http://localhost:4000' :'https://fmm-3brf5aa2rq-as.a.run.app',
   getDefaultHeaders() {
      return {
         "Content-Type": "application/json",

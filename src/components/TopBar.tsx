@@ -39,7 +39,6 @@ export default function TopBar() {
   const { currentProject, isSaving } = useProjectStore();
   const {
     node: {
-      nodes,
       addChildNode,
       addSiblingNode,
       addParentNode,
@@ -52,10 +51,10 @@ export default function TopBar() {
   const { currentUser } = useUserStore();
 
   const selectedNodeRef = useRef(
-    nodes.find((n) => n.id === currentActiveNodeId)
+    useMindMapStore.getState().node.nodes.find((n) => n.id === currentActiveNodeId)
   );
   useEffect(() => {
-    selectedNodeRef.current = nodes.find((n) => n.id === currentActiveNodeId);
+    selectedNodeRef.current = useMindMapStore.getState().node.nodes.find((n) => n.id === currentActiveNodeId);
   }, [currentActiveNodeId]);
 
   type Command =
@@ -68,15 +67,20 @@ export default function TopBar() {
     | "undo";
 
   type HandlerMap = Record<Command, () => void>;
-  const createHandlers = (selectedNode: Node | undefined): HandlerMap => ({
-    addChildNode: () => selectedNode && addChildNode(selectedNode),
-    addSiblingNode: () => selectedNode && addSiblingNode(selectedNode),
-    addParentNode: () => selectedNode && addParentNode(selectedNode),
-    deleteNode: () => selectedNode && deleteNode(selectedNode.id),
-    toggleCollapse: () => selectedNode && toggleCollapse(selectedNode.id),
-    redo: () => redo(),
-    undo: () => undo(),
-  });
+  const createHandlers = (selectedNode: Node | undefined): HandlerMap => {
+    const lastestNode = useMindMapStore
+        .getState()
+        .node.nodes.find((n) => n.id === selectedNode?.id);
+    return {
+      addChildNode: () => lastestNode && addChildNode(lastestNode),
+      addSiblingNode: () => lastestNode && addSiblingNode(lastestNode),
+      addParentNode: () => lastestNode && addParentNode(lastestNode),
+      deleteNode: () => lastestNode && deleteNode(lastestNode.id),
+      toggleCollapse: () => lastestNode && toggleCollapse(lastestNode.id),
+      redo: () => redo(),
+      undo: () => undo(),
+    };
+  };
   const callHandler = (command: Command) => {
     const handlers = createHandlers(selectedNodeRef.current);
     handlers[command]?.();

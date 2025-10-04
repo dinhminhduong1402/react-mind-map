@@ -75,9 +75,7 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
       addChildNode: (selectedNode) => {
         const newNodeId = `node-${crypto.randomUUID().toString()}`;
         // console.log({width: selectedNode.measured?.width})
-        if(selectedNode.data?.collapsed) {
-          get().toggleCollapse(selectedNode.id)
-        }
+        
         const childPosition = {
           x:
             (selectedNode.position?.x || 0) +
@@ -105,10 +103,19 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
 
         get().node.setNodes([...get().node.nodes, newNode]);
         get().edge.setEdges([...get().edge.edges, newEdge]);
-        get().node.setcurrentActiveNodeId(newNodeId);
-        get().node.setcurrentFocusNodeId(newNodeId);
-        get().layout.updateLayout();
+       
 
+        if(selectedNode.data?.collapsed) {
+          get().toggleCollapse(selectedNode.id)
+          setTimeout(() => {
+            get().node.setcurrentActiveNodeId(newNodeId);
+            get().node.setcurrentFocusNodeId(newNodeId);
+          }, 350)
+        } else {
+           get().node.setcurrentActiveNodeId(newNodeId);
+            get().node.setcurrentFocusNodeId(newNodeId);
+            get().layout.updateLayout();
+        }
         return newNode;
       },
       addSiblingNode: (selectedNode) => {
@@ -663,121 +670,125 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
     },
 
     toggleCollapse: (id: string) => {
-      set((state) => {
-        const nodesMap = new Map(state.node.nodes.map((n) => [n.id, n]));
-        const edgesMap = new Map(state.edge.edges.map((e) => [e.id, e]));
+      const nodesMap = new Map(get().node.nodes.map((n) => [n.id, n]));
+      const edgesMap = new Map(get().edge.edges.map((e) => [e.id, e]));
 
-        const node = nodesMap.get(id);
-        if (!node) return state;
+      const node = nodesMap.get(id);
+      if (!node) return;
 
-        const newCollapsed = !node.data?.collapsed;
+      const newCollapsed = !node.data?.collapsed;
 
-        // cập nhật node gốc toggle (KHÔNG ẩn node này)
-        nodesMap.set(id, {
-          ...node,
-          data: {
-            ...node.data,
-            collapsed: newCollapsed,
-            // isHidding: newCollapsed,
-          },
+      // cập nhật node gốc toggle (KHÔNG ẩn node này)
+      nodesMap.set(id, {
+        ...node,
+        data: {
+          ...node.data,
+          collapsed: newCollapsed,
+          // isHidding: newCollapsed,
+        },
+      });
+
+      // Hàm helper ẩn có animation
+      const hideWithAnimation = (edge: Edge, child: Node) => {
+        edgesMap.set(edge.id, {
+          ...edge,
+          data: { ...edge.data, isHidding: true },
+        });
+        nodesMap.set(child.id, {
+          ...child,
+          data: { ...child.data, isHidding: true },
         });
 
-        // Hàm helper ẩn có animation
-        const hideWithAnimation = (edge: Edge, child: Node) => {
+        setTimeout(() => {
+          const latestEdge = edgesMap.get(edge.id)!;
+          const latestNode = nodesMap.get(child.id)!;
+
           edgesMap.set(edge.id, {
-            ...edge,
-            data: { ...edge.data, isHidding: true },
-          });
-          nodesMap.set(child.id, {
-            ...child,
-            data: { ...child.data, isHidding: true },
+            ...latestEdge,
+            hidden: true,
+            data: { ...latestEdge.data, isHidding: false },
           });
 
-          setTimeout(() => {
-            edgesMap.set(edge.id, {
-              ...edge,
-              hidden: true,
-              data: { ...edge.data, isHidding: false },
+          nodesMap.set(child.id, {
+            ...latestNode,
+            hidden: true,
+            data: { ...latestNode.data, isHidding: false },
+          });
+
+        }, 300);
+      };
+
+      // Hàm đệ quy để ẩn/hiện con cháu
+      const toggleChildren = (parentId: string, hiddenByParent: boolean) => {
+        for (const e of get().edge.edges) {
+          if (e.source !== parentId) continue;
+
+          const child = nodesMap.get(e.target);
+          if (!child) continue;
+
+          if (!e.data) e.data = {};
+          if (!child.data) child.data = {};
+
+          // Trường hợp cha collapsed hoặc bị ẩn theo cha
+          if (hiddenByParent) {
+            // chỉ animate nếu chưa hidden
+            if (!child.hidden) {
+              hideWithAnimation(e, child);
+            } else {
+              // đã hidden thì giữ nguyên, không animate lại
+              edgesMap.set(e.id, { ...e, hidden: true });
+              nodesMap.set(child.id, { ...child, hidden: true });
+            }
+            toggleChildren(child.id, true);
+          } else {
+            // Cha expand → hiện edge & child
+            edgesMap.set(e.id, {
+              ...e,
+              hidden: false,
+              data: { ...e.data, isHidding: false },
             });
             nodesMap.set(child.id, {
               ...child,
-              hidden: true,
+              hidden: false,
               data: { ...child.data, isHidding: false },
             });
-          }, 200);
-        };
 
-        // Hàm đệ quy để ẩn/hiện con cháu
-        const toggleChildren = (parentId: string, hiddenByParent: boolean) => {
-          for (const e of state.edge.edges) {
-            if (e.source !== parentId) continue;
-
-            const child = nodesMap.get(e.target);
-            if (!child) continue;
-
-            if (!e.data) e.data = {};
-            if (!child.data) child.data = {};
-
-            // Trường hợp cha collapsed hoặc bị ẩn theo cha
-            if (hiddenByParent) {
-              // chỉ animate nếu chưa hidden
-              if (!child.hidden) {
-                hideWithAnimation(e, child);
-              } else {
-                // đã hidden thì giữ nguyên, không animate lại
-                edgesMap.set(e.id, { ...e, hidden: true });
-                nodesMap.set(child.id, { ...child, hidden: true });
-              }
+            // Nếu child cũng collapsed → vẫn phải ẩn con cháu của nó
+            if (child.data?.collapsed) {
               toggleChildren(child.id, true);
             } else {
-              // Cha expand → hiện edge & child
-              edgesMap.set(e.id, {
-                ...e,
-                hidden: false,
-                data: { ...e.data, isHidding: false },
-              });
-              nodesMap.set(child.id, {
-                ...child,
-                hidden: false,
-                data: { ...child.data, isHidding: false },
-              });
-
-              // Nếu child cũng collapsed → vẫn phải ẩn con cháu của nó
-              if (child.data?.collapsed) {
-                toggleChildren(child.id, true);
-              } else {
-                toggleChildren(child.id, false);
-              }
+              toggleChildren(child.id, false);
             }
           }
-        };
+        }
+      };
 
-        // Bắt đầu từ node gốc
-        toggleChildren(id, newCollapsed);
+      // Bắt đầu từ node gốc
+      toggleChildren(id, newCollapsed);
 
-        return {
-          node: {
-            ...state.node,
-            nodes: Array.from(nodesMap.values()),
-          },
-          edge: {
-            ...state.edge,
-            edges: Array.from(edgesMap.values()),
-          },
-        };
-      });
-
+      // / cập nhật lại sau khi set isHidding
+      get().node.setNodes(Array.from(nodesMap.values()));
+      get().edge.setEdges(Array.from(edgesMap.values()));
       get().layout.updateLayout();
+      
+      
+      // Thực sự ẩn sau khi animation chạy xong
+      setTimeout(() => {
+        get().node.setNodes(Array.from(nodesMap.values()));
+        get().edge.setEdges(Array.from(edgesMap.values()));
 
-      // force render
-      get().node.setcurrentActiveNodeId(new Date().getTime().toString());
-      get().node.setcurrentActiveNodeId(id);
+        get().layout.updateLayout();
+        // force render
+        get().node.setcurrentActiveNodeId(new Date().getTime().toString());
+        get().node.setcurrentActiveNodeId(id);
 
-      // clear focus to text editor
-      get().node.setcurrentFocusNodeId(""); 
-      // setTimeout(() => {
-        
-      // }, 50);
+        // clear focus to text editor
+        get().node.setcurrentFocusNodeId(""); 
+        console.log({node: nodesMap.get(id)})
+      },300)
+
+
+      
     },
 
     toggleCompleted: (nodeId) => {
