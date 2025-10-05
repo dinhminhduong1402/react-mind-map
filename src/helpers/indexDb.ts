@@ -11,13 +11,6 @@ export const dbPromise = openDB('mindmap-db', 1, {
   },
 });
 
-
-export async function saveProject(project: unknown) {
-  const db = await dbPromise;
-  await db.put('projects', project);
-}
-
-
 export async function createProject(project: Project): Promise<Project> {
   const projectId = project.project_id
   const db = await dbPromise;
@@ -27,7 +20,7 @@ export async function createProject(project: Project): Promise<Project> {
   if (existing) {
     throw new Error(`Project with id ${projectId} is exist`);
   }
-
+  project.createdAt = new Date().toISOString()
   await db.put('projects', project);
   return project
 }
@@ -42,6 +35,7 @@ export async function updateProject(project: ProjectMin) {
   }
 
   // 2. merge old + new fields
+  project.updatedAt = new Date().toISOString()
   const updated = { ...existing, ...project };
 
   // 3. save back
@@ -54,7 +48,7 @@ export async function getAllProjects(): Promise<ProjectMin[]> {
   const db = await dbPromise;
   const projectList = await db.getAll('projects');
   const result = projectList.map((p) =>
-    pickFields(p, ["project_id", "project_title"])
+    pickFields(p, ["project_id", "project_title", "updatedAt", "createdAt"])
   );
   return result;
 }

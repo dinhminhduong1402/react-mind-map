@@ -238,7 +238,7 @@ export default function TopBar() {
                 </TooltipProvider>
               ) : (
                 <h1
-                  className="text-md font-semibold text-gray-800 text-nowrap flex items-center gap-1 hover:text-orange-600"
+                  className="text-md font-semibold text-gray-800 text-nowrap flex items-center gap-1 hover:text-purple-600"
                   onClick={() => setEditingTitle(true)}
                 >
                   {title}

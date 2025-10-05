@@ -1,6 +1,5 @@
 // useProjectStore.ts
 import { create } from 'zustand';
-import { deleteProject } from '@/helpers/indexDb';
 import { Node, Edge } from '@xyflow/react';
 import {ProjectContext, ApiProjectStrategy, LocalProjectStrategy} from '@/services/projectService'
 import useUserStore from '@/store/useUserStore';
@@ -11,7 +10,8 @@ export type ProjectMin = {
   project_title: string,
   nodes?: Node[],
   edges?: Edge[],
-//   lastUpdated: string; // luôn lưu ISO string để dễ persist
+  updatedAt?: string //ISO string
+  createdAt?: string
 }
 
 export type Project = {
@@ -19,6 +19,8 @@ export type Project = {
   project_title: string,
   nodes: Node[],
   edges: Edge[],
+  updatedAt?: string //ISO string
+  createdAt?: string
 }
 
 interface ProjectState {
@@ -55,7 +57,8 @@ const getDefaultProject: () => Project = () => ({
     },
   ],
   edges: [],
-  // lastUpdated: new Date().toISOString(),
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toString()
 });
 
 const LAST_PROJECT_ID_KEY = "mindmap-last-project-id";
@@ -121,7 +124,7 @@ const useProjectStore = create<ProjectState>((set, get) => {
       // udpate to store
       const newProject: Project = { ...getDefaultProject(), project_title: title }
       set(state => ({
-        projectList: [...state.projectList, newProject],
+        projectList: [newProject, ...state.projectList],
         currentProject: newProject,
       }))
       // update to databsae
@@ -151,17 +154,8 @@ const useProjectStore = create<ProjectState>((set, get) => {
     },
 
     removeProject: async (id: string) => {
-      set(state => {
-        const filtered = state.projectList.filter(p => p.project_id !== id)
-        let newCurrentId = state.currentProject?.project_id
-        if (newCurrentId === id) {
-          newCurrentId =
-            filtered.length > 0 ? filtered[0].project_id : undefined
-          localStorage.setItem(LAST_PROJECT_ID_KEY, newCurrentId ?? "")
-        }
-        return { projectList: filtered }
-      })
-      await deleteProject(id)
+      await get().projectService().deleteProject(id)
+      await get().initProjects()
     },
   }
 })

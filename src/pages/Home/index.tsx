@@ -1,5 +1,5 @@
 
-import { useEffect, useState} from "react";
+import { useEffect, useState, useRef } from "react";
 import { useUpdateEffect} from "ahooks";
 
 import TopBar from "@/components/TopBar";
@@ -22,7 +22,13 @@ export default function Home() {
   const {setCurrentUser} = useUserStore()
   const {openSyncModal} = useSyncDataStore()
   
+  const effectRan = useRef(false);
   useEffect(() => {
+    if (effectRan.current === true) {
+      console.log("Effect runs only once");
+      return
+    }
+
     setCurrentUser()
     .then(user => {
       if(!user) {
@@ -34,8 +40,13 @@ export default function Home() {
       // load projects
       initProjects()
     })
+
+    return () => {
+      effectRan.current = true;
+    };
     
   }, [])
+  
 
   useKeyboardShortcuts()
 

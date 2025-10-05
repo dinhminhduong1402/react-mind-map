@@ -1,6 +1,6 @@
 import configs from "@/configs"
 import { apiFetch } from "./apiService"
-import {getAllProjects, getProjectData, updateProject, createProject} from '@/helpers/indexDb'
+import {getAllProjects, getProjectData, updateProject, createProject, deleteProject} from '@/helpers/indexDb'
 import type { ProjectMin, Project } from "@/store/useProjectStore"
 
 interface ProjectStrategy {
@@ -13,6 +13,8 @@ interface ProjectStrategy {
   create: (project: Project) => Promise<unknown>
 
   batchInsert: (projects: Project[]) => Promise<unknown>
+
+  deleteProject: (projectId: string) => Promise<unknown>
 }
 
 // call api
@@ -65,6 +67,13 @@ class ApiProjectStrategy implements ProjectStrategy {
     }).then(rs => rs.json())
     return rsJson.metadata
   }
+
+  async deleteProject(projectId: string) {
+    const rsJson = await apiFetch(`${configs.apiBaseUrl}/api/project/delete/${projectId}`, {
+      method: 'DELETE',
+    }).then(rs => rs.json())
+    return rsJson.metadata
+  }
 }
 
 // indexed db
@@ -88,6 +97,10 @@ class LocalProjectStrategy implements ProjectStrategy {
   async batchInsert(projects: Project[]) {
     console.log('local db strategy ::: batchInsert ', {projects})
   }
+
+  async deleteProject(projectId: string) {
+    return await deleteProject(projectId)
+  }
 }
 
 class ProjectContext {
@@ -98,7 +111,8 @@ class ProjectContext {
   }
 
   async getProjectList() {
-    return this.strategy?.getProjectList()
+    const rs = await this.strategy?.getProjectList()
+    return rs?.sort((a, b) => +new Date(b.createdAt || '') - +new Date(a.createdAt || ''))
   }
 
   async getProjectData(projectId: string) {
@@ -115,6 +129,10 @@ class ProjectContext {
 
   async batchInsert(projects: Project[]) {
     return this.strategy?.batchInsert(projects)
+  }
+
+  async deleteProject(projectId: string) {
+    return this.strategy?.deleteProject(projectId)
   }
 
 }
