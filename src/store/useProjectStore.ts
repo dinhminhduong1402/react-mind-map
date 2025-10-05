@@ -23,6 +23,7 @@ export type Project = {
 
 interface ProjectState {
   projectList: ProjectMin[];
+  updateProjectList: () => Promise<void>;
   currentProject: Project | null,
   setCurrentProject: (projectId: string) => Promise<Project | undefined>,
 
@@ -38,7 +39,7 @@ interface ProjectState {
   projectService: () => ProjectContext,
 }
 
-const defaultProject: Project = {
+const getDefaultProject: () => Project = () => ({
   project_id: crypto.randomUUID(),
   project_title: 'New Project',
   nodes: [
@@ -55,7 +56,7 @@ const defaultProject: Project = {
   ],
   edges: [],
   // lastUpdated: new Date().toISOString(),
-};
+});
 
 const LAST_PROJECT_ID_KEY = "mindmap-last-project-id";
 
@@ -76,6 +77,10 @@ const useProjectStore = create<ProjectState>((set, get) => {
       return projectService
     },
     projectList: [],
+    updateProjectList: async () => {
+      const projects = await get().projectService().getProjectList()
+      set(() => ({projectList: projects}))
+    },
     currentProject: null,
     
     initProjects: async () => {
@@ -83,6 +88,7 @@ const useProjectStore = create<ProjectState>((set, get) => {
       const lastProjectId = localStorage.getItem(LAST_PROJECT_ID_KEY)
 
       if (projects?.length === 0) {
+        const defaultProject = getDefaultProject()
         await get().projectService().create(defaultProject)
         await get().setCurrentProject(defaultProject.project_id)
         set({ projectList: [defaultProject] })
@@ -113,7 +119,7 @@ const useProjectStore = create<ProjectState>((set, get) => {
 
     createProject: async (title) => {
       // udpate to store
-      const newProject: Project = { ...defaultProject, project_title: title }
+      const newProject: Project = { ...getDefaultProject(), project_title: title }
       set(state => ({
         projectList: [...state.projectList, newProject],
         currentProject: newProject,
@@ -141,6 +147,7 @@ const useProjectStore = create<ProjectState>((set, get) => {
 
     udpateProjectData: async (updateData) => {
       await get().projectService().updateProject(updateData)
+      await get().updateProjectList()
     },
 
     removeProject: async (id: string) => {

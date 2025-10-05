@@ -16,7 +16,11 @@ export default class UserService {
       headers: {
         ...configs.getDefaultHeaders()
       }
-    }).then(rs => rs.json())
+    })
+    .then(rs => rs.json())
+    .catch(err => { 
+      throw err 
+    })
     
     return {
       user_id: rsBody.metadata._id,

@@ -573,7 +573,7 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
 
         // Khoảng cách có thể chỉnh tuỳ UI
         const LEFT = 50; // lề trái cho root
-        const H_GAP = 80; // khoảng cách ngang cha ↔ con
+        const H_GAP = 50; // khoảng cách ngang cha ↔ con
         const V_GAP = 20; // khoảng cách dọc giữa các subtree siblings
         const DEFAULT_W = 150; // fallback width nếu chưa đo
         const DEFAULT_H = 50; // fallback height nếu chưa đo

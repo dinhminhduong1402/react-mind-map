@@ -14,7 +14,7 @@ export default function ProjectModal({ isOpen, onClose }: ProjectModalProps) {
   const [newTitle, setNewTitle] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState("");
-  const { udpateProjectData } = useProjectStore()
+  const { udpateProjectData, currentProject } = useProjectStore()
 
   const handleAdd = () => {
     if (newTitle.trim()) {
@@ -23,11 +23,15 @@ export default function ProjectModal({ isOpen, onClose }: ProjectModalProps) {
     }
   };
 
-  const handleUpdate = (id: string) => {
+  const handleUpdate = async (id: string) => {
     if (editingTitle.trim()) {
-      udpateProjectData({project_id: id, project_title: editingTitle.trim()});
+      await udpateProjectData({project_id: id, project_title: editingTitle.trim()});
       setEditingId(null);
       setEditingTitle("");
+
+      if(currentProject?.project_id === id) {
+        setCurrentProject(id)
+      }
     }
   };
 
@@ -67,7 +71,8 @@ export default function ProjectModal({ isOpen, onClose }: ProjectModalProps) {
               {projectList.map((p) => (
                 <div
                   key={p.project_id}
-                  className="flex items-center justify-between bg-gray-50 p-3 rounded-xl shadow-sm"
+                  className={`flex items-center justify-between bg-gray-50 p-3 rounded-xl shadow-sm 
+                    ${currentProject?.project_id === p.project_id ? 'bg-yellow-200' : ''}`}
                 >
                   {editingId === p.project_id ? (
                     <input

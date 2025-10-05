@@ -1,4 +1,5 @@
 import configs from '../configs'
+import { apiFetch } from './apiService';
 
 export class AccessService {
   static async getGoogleOAuthLoginUrl(): Promise<string> {
@@ -15,5 +16,12 @@ export class AccessService {
 
     
     return true
+  }
+
+  static async Logout(): Promise<void> {
+    const rsBody = await apiFetch(`${configs.apiBaseUrl}/api/auth/logout`, {
+      method: 'POST'
+    }).then(rs => rs.json())
+    return rsBody.metadata
   }
 }

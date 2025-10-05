@@ -53,7 +53,7 @@ async function apiFetch(url: string, options: ApiFetchOptions = {}): Promise<Res
         .catch((e) => {
           console.error("Refresh token failed", e);
           logout();
-          throw e;
+          reject(e);
         })
         .finally(() => {
           isRefreshing = false;

@@ -1,23 +1,7 @@
 // db.ts
 import { openDB } from 'idb';
-import useProjectStore from '@/store/useProjectStore';
 import { pickFields } from '@/core/utils';
-import {Node, Edge} from '@xyflow/react'
-
-type Project = {
-  project_id: string,
-  project_title: string,
-  nodes?: Node[],
-  edges?: Edge[]
-}
-
-type ProjectMin = {
-  project_id: string,
-  project_title?: string,
-  nodes?: Node[],
-  edges?: Edge[]
-}
-
+import { Project, ProjectMin } from '@/store/useProjectStore';
 
 export const dbPromise = openDB('mindmap-db', 1, {
   upgrade(db) {
@@ -66,7 +50,7 @@ export async function updateProject(project: ProjectMin) {
   return updated;
 }
 
-export async function getAllProjects(): Promise<Project[]> {
+export async function getAllProjects(): Promise<ProjectMin[]> {
   const db = await dbPromise;
   const projectList = await db.getAll('projects');
   const result = projectList.map((p) =>
@@ -75,7 +59,7 @@ export async function getAllProjects(): Promise<Project[]> {
   return result;
 }
 
-export async function getProjectData(projectId: string) {
+export async function getProjectData(projectId: string): Promise<Project> {
   const db = await dbPromise;
   const project = await db.get('projects', projectId);
 

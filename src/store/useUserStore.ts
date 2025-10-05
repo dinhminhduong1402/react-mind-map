@@ -1,3 +1,4 @@
+import { AccessService } from '@/services/accessService'
 import UserService from '@/services/userService'
 import {create} from 'zustand'
 
@@ -11,7 +12,8 @@ type UserInfo = {
 interface UserState {
   currentUser: UserInfo | null,
 
-  setCurrentUser: () => Promise<UserInfo | null>
+  setCurrentUser: () => Promise<UserInfo | null>,
+  logout: () => Promise<void>
 }
 
 const useUserStore = create<UserState>(
@@ -39,8 +41,17 @@ const useUserStore = create<UserState>(
         
       }
       return get().currentUser
-    }
+    },
     
+    async logout() {
+      await AccessService.Logout()
+      await get().setCurrentUser()
+      localStorage.removeItem('userId')
+      localStorage.removeItem('accessToken')
+      localStorage.removeItem('refreshToken')
+      localStorage.removeItem('deviceId')
+      window.location.reload()
+    }
   })
 )
 

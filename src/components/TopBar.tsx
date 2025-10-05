@@ -1,20 +1,26 @@
 import { Node } from "@xyflow/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  FolderKanban,
+  // FolderKanban,
   Loader,
   CheckCircle,
-  Settings,
+  // Settings,
+  ChevronRight,
   Beer,
   Redo2,
   Undo2,
-  Eye,
+  // Eye,
   Save,
   Trash2,
   Network,
   Workflow,
   GitFork,
   HatGlasses,
+  Share2,
+  ChevronDown,
+  // House   ,
+  Menu  ,
+  Edit3,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ProjectModal from "./ProjectModal"; // import modal
@@ -31,10 +37,14 @@ import {
 import useMindMapStore from "@/store/useMindMapStore";
 import DonateModal from "./DonateModal";
 import { truncate } from "@/core/utils";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel } from "@/components/ui/dropdown-menu"
+import { FcGoogle } from "react-icons/fc";
+import { AccessService } from "@/services/accessService";
 
 export default function TopBar() {
   const [title, setTitle] = useState<string>("");
   const [openModal, setOpenModal] = useState(false);
+  const [openUserDropdown, setOpenUserDropdown] = useState(false);
   const [openDonateModal, setOpenDonateModal] = useState(false);
   const { currentProject, isSaving } = useProjectStore();
   const {
@@ -48,7 +58,11 @@ export default function TopBar() {
     history: { redo, undo },
     toggleCollapse,
   } = useMindMapStore();
+  const {logout} = useUserStore()
   const { currentUser } = useUserStore();
+
+  const [editingTitle, setEditingTitle] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const selectedNodeRef = useRef(
     useMindMapStore.getState().node.nodes.find((n) => n.id === currentActiveNodeId)
@@ -57,6 +71,23 @@ export default function TopBar() {
     selectedNodeRef.current = useMindMapStore.getState().node.nodes.find((n) => n.id === currentActiveNodeId);
   }, [currentActiveNodeId]);
 
+  useEffect(() => {
+    if (editingTitle && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [editingTitle]);
+
+  const handleTitleSave = () => {
+    setEditingTitle(false);
+    if (currentProject && title.trim() && title !== currentProject.project_title) {
+
+      useProjectStore.getState().udpateProjectData({
+        project_id: currentProject.project_id,
+        project_title: title.trim(),
+      })
+    }
+  };
+  
   type Command =
     | "addChildNode"
     | "addSiblingNode"
@@ -92,7 +123,7 @@ export default function TopBar() {
     } else {
       setTitle("No Project Selected");
     }
-  }, [currentProject]);
+  }, [currentProject?.project_title]);
 
   type Action = {
     handler: Command;
@@ -132,12 +163,12 @@ export default function TopBar() {
         title: "Add parent node",
         shorcut: "Shift + Tab",
       },
-      {
-        handler: "toggleCollapse",
-        icon: <Eye></Eye>,
-        title: "Toggle subtree",
-        shorcut: "Crt + /",
-      },
+      // {
+      //   handler: "toggleCollapse",
+      //   icon: <Eye></Eye>,
+      //   title: "Toggle subtree",
+      //   shorcut: "Crt + /",
+      // },
       {
         handler: "deleteNode",
         icon: <Trash2></Trash2>,
@@ -158,19 +189,46 @@ export default function TopBar() {
         `}
       >
         {/* Project Info */}
-        <div className=" w-[400px]" onClick={() => setOpenModal(true)}>
+        <div className=" w-[450px] overflow-hidden bg-white shadow-[0_0_15px_rgba(0,0,0,0.2)]  rounded-md ">
           <div
-            className="flex gap-5 bg-white rounded-md shadow-[0_0_15px_rgba(0,0,0,0.2)] w-fit
-          px-3 py-1 pointer-events-auto"
+            className="flex gap-5 w-[100%]
+          px-3 py-1 pointer-events-auto justify-between"
           >
-            <div className="flex items-center gap-2 cursor-pointer">
-              <FolderKanban className="text-yellow-500" size={34} />
-              {title.length > 15 ? (
+            <div className="flex items-center gap-4 cursor-pointer">
+              <Button
+                className="cursor-pointer bg-gray-200 border-2 border-black-800"
+                variant={"ghost"}
+                onClick={() => setOpenModal(true)}
+              >
+                <Menu
+                  // className="bg-yellow-500"
+                  size={34}
+                />
+              </Button>
+
+              {/* ✅ Editable Project Title */}
+              {editingTitle ? (
+                <input
+                  ref={inputRef}
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  onBlur={handleTitleSave}
+                  onKeyDown={(e) => e.key === "Enter" && handleTitleSave()}
+                  className="text-md font-semibold border-b border-gray-400 focus:outline-none px-1 w-[calc(450px-5rem)]"
+                />
+              ) : title.length > 15 ? (
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <h1 className="text-md font-semibold text-gray-800 text-nowrap">
+                      <h1
+                        className="text-md font-semibold text-gray-800 text-nowrap flex items-center gap-1 hover:text-purple-600"
+                        onClick={() => setEditingTitle(true)}
+                      >
                         {truncate(title, 15)}
+                        <Edit3
+                          size={14}
+                          className="opacity-60 hover:opacity-100"
+                        />
                       </h1>
                     </TooltipTrigger>
                     <TooltipContent side="bottom" className="text-sm">
@@ -179,13 +237,37 @@ export default function TopBar() {
                   </Tooltip>
                 </TooltipProvider>
               ) : (
-                <h1 className="text-md font-semibold text-gray-800 text-nowrap">
-                  title
+                <h1
+                  className="text-md font-semibold text-gray-800 text-nowrap flex items-center gap-1 hover:text-orange-600"
+                  onClick={() => setEditingTitle(true)}
+                >
+                  {title}
+                  <Edit3 size={14} className="opacity-60 hover:opacity-100" />
                 </h1>
               )}
             </div>
 
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 justify-between">
+              {/* save info */}
+              <div
+                // style={{ ...btnStyle, background: "green" }}
+                // variant='outline'
+                className="bg-transparent text-gray-500 border-none text-sm text-nowrap flex align-center gap-3"
+              >
+                Lastest:
+                {isSaving ? (
+                  <Loader size={18} className="animate-spin" />
+                ) : (
+                  <div className="flex gap-1 items-center">
+                    <CheckCircle size={16} />
+                  </div>
+                )}
+                {new Date().toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </div>
+              {/* save button */}
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -211,21 +293,6 @@ export default function TopBar() {
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
-              
-              <div
-                // style={{ ...btnStyle, background: "green" }}
-                // variant='outline'
-                className="bg-transparent text-gray-500 border-none text-sm text-nowrap flex align-center gap-3"
-              >
-                Lasted:
-                {isSaving ? (
-                  <Loader size={18} className="animate-spin" />
-                ) : (
-                  <div className="flex gap-1 items-center">
-                    <CheckCircle size={16} /> {new Date().toLocaleTimeString()}
-                  </div>
-                )}
-              </div>
             </div>
           </div>
         </div>
@@ -275,33 +342,79 @@ export default function TopBar() {
           </Button>
 
           {/* Setting */}
-          <Button
+          {/* <Button
             variant="ghost"
             className="cursor-pointer bg-white shadow-[0_0_15px_rgba(0,0,0,0.2)]"
           >
             <Settings></Settings>
             Settings
-          </Button>
-          {/*User  */}
+          </Button> */}
+          {/* Share */}
           <Button
             variant="ghost"
-            className="cursor-pointer rounded-full bg-white shadow-[0_0_15px_rgba(0,0,0,0.2)]"
-            size="icon"
+            className="cursor-pointer bg-white shadow-[0_0_15px_rgba(0,0,0,0.2)]"
           >
-            {
-              currentUser ?
-              <img
-                src={currentUser?.user_avatar}
-                alt="avatar"
-                width={25}
-                height={25}
-                className="rounded-full"
-              />
-      
-            : <HatGlasses/>
-            }
-            
+            <Share2></Share2>
+            Share
           </Button>
+          {/*User  */}
+          <DropdownMenu
+            open={openUserDropdown}
+            onOpenChange={setOpenUserDropdown}
+          >
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                className="cursor-pointer rounded-md bg-white shadow-[0_0_15px_rgba(0,0,0,0.2)]"
+                // size="icon"
+              >
+                {currentUser ? (
+                  <img
+                    src={currentUser?.user_avatar}
+                    alt="avatar"
+                    width={25}
+                    height={25}
+                    className="rounded-full"
+                  />
+                ) : (
+                  <HatGlasses />
+                )}
+                {openUserDropdown ? (
+                  <ChevronDown className="w-4 h-4 transition-transform duration-200" />
+                ) : (
+                  <ChevronRight className="w-4 h-4 transition-transform duration-200" />
+                )}
+              </Button>
+            </DropdownMenuTrigger>
+
+            <DropdownMenuContent side="bottom" align="end">
+              {!currentUser && (
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onClick={() => {
+                    AccessService.getGoogleOAuthLoginUrl().then((url) => {
+                      window.open(url, "_self");
+                    });
+                  }}
+                >
+                  <FcGoogle /> Login with Google
+                </DropdownMenuItem>
+              )}
+              {currentUser && (
+                <>
+                  <DropdownMenuLabel className="font-medium text-gray-700">
+                    {currentUser.user_name}
+                  </DropdownMenuLabel>
+                  <DropdownMenuItem
+                    className="cursor-pointer"
+                    onClick={() => logout()}
+                  >
+                    Logout
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </header>
 

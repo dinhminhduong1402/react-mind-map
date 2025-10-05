@@ -11,6 +11,8 @@ interface ProjectStrategy {
   updateProject: (project: ProjectMin) => void
 
   create: (project: Project) => Promise<unknown>
+
+  batchInsert: (projects: Project[]) => Promise<unknown>
 }
 
 // call api
@@ -53,7 +55,16 @@ class ApiProjectStrategy implements ProjectStrategy {
     return rsJson.metadata
   }
 
-  
+  async batchInsert(projects: Project[]) {
+    const rsJson = await apiFetch(`${configs.apiBaseUrl}/api/project/batch-insert`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({projects})
+    }).then(rs => rs.json())
+    return rsJson.metadata
+  }
 }
 
 // indexed db
@@ -72,6 +83,10 @@ class LocalProjectStrategy implements ProjectStrategy {
 
   async create(project: Project) {
     return await createProject(project)
+  }
+
+  async batchInsert(projects: Project[]) {
+    console.log('local db strategy ::: batchInsert ', {projects})
   }
 }
 
@@ -96,6 +111,10 @@ class ProjectContext {
 
   async create(project: Project) {
     return this.strategy?.create(project)
+  }
+
+  async batchInsert(projects: Project[]) {
+    return this.strategy?.batchInsert(projects)
   }
 
 }

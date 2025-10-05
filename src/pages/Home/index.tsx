@@ -8,24 +8,27 @@ import MindMap from "@/components/Mindmap";
 import LoginModal from "@/components/LoginModal";
 
 import { loadProjectToMindmap } from "@/store/syncLogic";
-import { useToastStore } from "@/store/useToastStore";
 import useProjectStore from "@/store/useProjectStore";
 import { ReactFlowProvider } from '@xyflow/react';
 import useKeyboardShortcuts from '@/hooks/useKeyboardShorcuts';
 import useUserStore from "@/store/useUserStore";
+import { useSyncDataStore } from "@/store/useSyncData";
+import { SyncDataModal } from "@/components/SyncDataModal";
 
 export default function Home() {
   const [isOpenLoginModal, setIsOpenLoginModal] = useState(false)
 
   const {currentProject, initProjects} = useProjectStore();
-  const {addToast, removeToast} = useToastStore()
   const {setCurrentUser} = useUserStore()
+  const {openSyncModal} = useSyncDataStore()
   
   useEffect(() => {
     setCurrentUser()
     .then(user => {
       if(!user) {
         setIsOpenLoginModal(true)
+      } else {
+        openSyncModal()
       }
       console.log({user})
       // load projects
@@ -53,6 +56,7 @@ export default function Home() {
       </div>
       <ToastContainer/>
       <LoginModal isOpen={isOpenLoginModal} onClose={() => {setIsOpenLoginModal(false)}}/>
+      <SyncDataModal/>
     </div>
   )
 }

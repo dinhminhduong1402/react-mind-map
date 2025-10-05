@@ -1,4 +1,4 @@
-import { X } from "lucide-react";
+import { X, Lightbulb  } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "./ui/button"
 import { FcGoogle } from "react-icons/fc";
@@ -35,14 +35,14 @@ export default function LoginModal({ isOpen, onClose }: ProjectModalProps) {
           exit={{ opacity: 0 }}
         >
           <motion.div
-            className="bg-white w-2/5 h-4/5 rounded-2xl shadow-xl flex flex-col"
+            className="bg-white w-2/5 h-3/5 rounded-2xl shadow-xl flex flex-col"
             initial={{ scale: 0.9 }}
             animate={{ scale: 1 }}
             exit={{ scale: 0.9 }}
           >
             {/* Header */}
             <div className="flex justify-between items-center px-6 py-4 border-b text-gray-500">
-              <h2 className="text-lg flex gap-3">Login modal</h2>
+              <h2 className="text-lg flex gap-3"><Lightbulb className="text-yellow-400"/> Login to save your maps</h2>
               <button onClick={onClose}>
                 <X
                   size={22}
@@ -58,8 +58,9 @@ export default function LoginModal({ isOpen, onClose }: ProjectModalProps) {
             </div>
 
             {/* Footer - Add Project */}
-            <div className="px-6 py-4 border-t gap-2 flex justify-center">
-              
+            <div className="px-6 py-4 border-t gap-2 flex justify-end">
+              <Button variant={"outline"} className="cursor-pointer" onClick={onClose}>
+                Skip</Button>
             </div>
           </motion.div>
         </motion.div>
