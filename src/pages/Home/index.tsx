@@ -14,8 +14,10 @@ import useKeyboardShortcuts from '@/hooks/useKeyboardShorcuts';
 import useUserStore from "@/store/useUserStore";
 import { useSyncDataStore } from "@/store/useSyncData";
 import { SyncDataModal } from "@/components/SyncDataModal";
+import LoadingPage from "@/components/loadingPage";
 
 export default function Home() {
+  const [isLoading, setisLoading] = useState(false)
   const [isOpenLoginModal, setIsOpenLoginModal] = useState(false)
 
   const {currentProject, initProjects} = useProjectStore();
@@ -28,7 +30,7 @@ export default function Home() {
       console.log("Effect runs only once");
       return
     }
-
+    setisLoading(true)
     setCurrentUser()
     .then(user => {
       if(!user) {
@@ -38,7 +40,10 @@ export default function Home() {
       }
       console.log({user})
       // load projects
-      initProjects()
+      return initProjects()
+    })
+    .finally(() => {
+      setisLoading(false)
     })
 
     return () => {
@@ -59,7 +64,7 @@ export default function Home() {
     
   }, [currentProject]);
   
-  return (
+  return !isLoading? (
     <div style={{ width: "100vw", height: "100vh" }}>
       <TopBar />
       <div  style={{ width: "100vw", height: "100vh"}}>
@@ -69,5 +74,5 @@ export default function Home() {
       <LoginModal isOpen={isOpenLoginModal} onClose={() => {setIsOpenLoginModal(false)}}/>
       <SyncDataModal/>
     </div>
-  )
+  ) : <LoadingPage/>
 }
