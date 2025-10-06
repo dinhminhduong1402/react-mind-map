@@ -163,24 +163,62 @@ export default function TailwindTextEditor({ id, text }: TextEditorProps) {
 
   return (
     <div
-      className="relative p-0 w-full"
+      className="relative p-0 h-full m-full overflow-y-auto"
       onMouseDown={handleMouseDown}
       onDoubleClick={handleDoubleClick}
     >
       {showToolbar && isEditing && (
         <div
           ref={toolbarRef}
-          style={{ transform: 'translateY(-100%)' }}
+          style={{ transform: "translateY(-100%)" }}
           className="absolute top-0 left-0 bg-white border border-gray-200 rounded-lg shadow-lg p-2 z-10 flex items-center gap-1 whitespace-nowrap"
         >
-          <button onClick={(e) => execCommand(e, 'bold')} className="p-1 rounded hover:bg-gray-100"><FiBold /></button>
-          <button onClick={(e) => execCommand(e, 'italic')} className="p-1 rounded hover:bg-gray-100"><FiItalic /></button>
-          <button onClick={(e) => execCommand(e, 'underline')} className="p-1 rounded hover:bg-gray-100"><FiUnderline /></button>
-          <button onClick={(e) => execCommand(e, 'insertUnorderedList')} className="p-1 rounded hover:bg-gray-100"><FiList /></button>
-          <button onClick={(e) => execCommand(e, 'justifyLeft')} className="p-1 rounded hover:bg-gray-100"><FiAlignLeft /></button>
-          <button onClick={(e) => execCommand(e, 'justifyCenter')} className="p-1 rounded hover:bg-gray-100"><FiAlignCenter /></button>
-          <button onClick={(e) => execCommand(e, 'justifyRight')} className="p-1 rounded hover:bg-gray-100"><FiAlignRight /></button>
-          <select onChange={formatBlock} className="border-0 bg-gray-100 rounded p-1 text-sm cursor-pointer focus:outline-none">
+          <button
+            onClick={(e) => execCommand(e, "bold")}
+            className="p-1 rounded hover:bg-gray-100"
+          >
+            <FiBold />
+          </button>
+          <button
+            onClick={(e) => execCommand(e, "italic")}
+            className="p-1 rounded hover:bg-gray-100"
+          >
+            <FiItalic />
+          </button>
+          <button
+            onClick={(e) => execCommand(e, "underline")}
+            className="p-1 rounded hover:bg-gray-100"
+          >
+            <FiUnderline />
+          </button>
+          <button
+            onClick={(e) => execCommand(e, "insertUnorderedList")}
+            className="p-1 rounded hover:bg-gray-100"
+          >
+            <FiList />
+          </button>
+          <button
+            onClick={(e) => execCommand(e, "justifyLeft")}
+            className="p-1 rounded hover:bg-gray-100"
+          >
+            <FiAlignLeft />
+          </button>
+          <button
+            onClick={(e) => execCommand(e, "justifyCenter")}
+            className="p-1 rounded hover:bg-gray-100"
+          >
+            <FiAlignCenter />
+          </button>
+          <button
+            onClick={(e) => execCommand(e, "justifyRight")}
+            className="p-1 rounded hover:bg-gray-100"
+          >
+            <FiAlignRight />
+          </button>
+          <select
+            onChange={formatBlock}
+            className="border-0 bg-gray-100 rounded p-1 text-sm cursor-pointer focus:outline-none"
+          >
             <option value="p">Normal</option>
             <option value="h1">Heading 1</option>
             <option value="h2">Heading 2</option>
@@ -198,7 +236,11 @@ export default function TailwindTextEditor({ id, text }: TextEditorProps) {
         tabIndex={-1} // Thêm tabindex để có thể focusable
         suppressContentEditableWarning
         className={`
-          ${isEditing ? 'nodrag border-blue-500 bg-transparent cursor-text' : 'cursor-pointer'}
+          ${
+            isEditing
+              ? "nodrag border-blue-500 bg-transparent cursor-text"
+              : "cursor-pointer"
+          }
           p-1 rounded-lg text-base leading-snug outline-none transition-all
           hover:border-blue-500
         `}

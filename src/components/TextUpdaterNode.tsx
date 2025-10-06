@@ -1,11 +1,11 @@
-import { Handle, Position, NodeProps, Edge } from "@xyflow/react";
-import { MouseEvent, useCallback, ReactNode, useRef, useMemo, useLayoutEffect, useEffect } from "react";
+import { Handle, Position, NodeProps, Edge, NodeResizeControl  } from "@xyflow/react";
+import { MouseEvent, useCallback, ReactNode, useRef, useMemo, useLayoutEffect, useEffect,  } from "react";
 import TextEditor from "./TextEditor";
 import useMindMapStore from "../store/useMindMapStore";
 import { Circle , CircleCheckBig , Minus , Plus  } from "lucide-react";
 import useKeyBoardManager from "@/core/useKeyBoardManger";
 import { motion } from "framer-motion";
-
+import {IoResizeSharp } from "react-icons/io5"
 
 const icons: Record<string, ReactNode > = {
   pending: <Circle className="text-gray-400" size={18} />,
@@ -17,14 +17,25 @@ const icons: Record<string, ReactNode > = {
 export function TextUpdaterNode({ id, data, selected }: NodeProps) {
   const content: string = data?.content ? String(data.content) : "";
   const isRoot = id === "root";
-  
 
-  const {nodes, setcurrentActiveNodeId, currentActiveNodeId, setcurrentFocusNodeId, moveDown, moveLeft, moveRight, moveUp, addChildNode, addParentNode} = useMindMapStore(state => state.node)
-  const {edges} = useMindMapStore(state => state.edge)
+  const {
+    nodes,
+    setcurrentActiveNodeId,
+    currentActiveNodeId,
+    setcurrentFocusNodeId,
+    moveDown,
+    moveLeft,
+    moveRight,
+    moveUp,
+    addChildNode,
+    addParentNode,
+  } = useMindMapStore((state) => state.node);
+  const { edges } = useMindMapStore((state) => state.edge);
+  // const { updateLayout } = useMindMapStore((state) => state.layout);
   const toggleCollapse = useMindMapStore((s) => s.toggleCollapse);
   const toggleCompleted = useMindMapStore((s) => s.toggleCompleted);
 
-  const isLeafNode = edges.findIndex(edge => edge.source === id) == -1
+  const isLeafNode = edges.findIndex((edge) => edge.source === id) == -1;
 
   const getDepth = (nodeId: string): number => {
     let depth = 0;
@@ -39,119 +50,135 @@ export function TextUpdaterNode({ id, data, selected }: NodeProps) {
   };
   const depth = getDepth(id);
   const isDeepNode = depth >= 2;
-  
 
-  const handleToggle = useCallback((event: MouseEvent) => {
-    event.preventDefault();
-    event.stopPropagation();
-    toggleCollapse(id);
-  }, [id, toggleCollapse]);
+  const handleToggle = useCallback(
+    (event: MouseEvent) => {
+      event.preventDefault();
+      event.stopPropagation();
+      toggleCollapse(id);
+    },
+    [id, toggleCollapse]
+  );
 
-  const handleCompleted = useCallback((event: MouseEvent) => {
-    event.preventDefault();
-    event.stopPropagation();
-    toggleCompleted(id);
-  }, [id, toggleCompleted]);
+  const handleCompleted = useCallback(
+    (event: MouseEvent) => {
+      event.preventDefault();
+      event.stopPropagation();
+      toggleCompleted(id);
+    },
+    [id, toggleCompleted]
+  );
 
-  const nodeRef = useRef<HTMLDivElement>(null)
-  
+  const nodeRef = useRef<HTMLDivElement>(null);
+
   const shortCuts = (e: React.KeyboardEvent<HTMLElement>) => {
-    const {nodes, currentActiveNodeId, addSiblingNode, deleteNode} = useMindMapStore.getState().node
-    const {toggleCollapse} = useMindMapStore.getState()
+    const { nodes, currentActiveNodeId, addSiblingNode, deleteNode } =
+      useMindMapStore.getState().node;
+    const { toggleCollapse } = useMindMapStore.getState();
 
-    const selectedNode = nodes.find(n => n.id === currentActiveNodeId)
-    if(!selectedNode) return -1
+    const selectedNode = nodes.find((n) => n.id === currentActiveNodeId);
+    if (!selectedNode) return -1;
 
     if (e.key === "Tab" && !e.shiftKey) {
       addChildNode(selectedNode);
-      return 0
+      return 0;
     }
 
-    if(e.shiftKey && e.key === 'Tab') {
-      addParentNode(selectedNode)
-      return 0
+    if (e.shiftKey && e.key === "Tab") {
+      addParentNode(selectedNode);
+      return 0;
     }
-    
-    if (e.key === "Enter") { //Phải nghe nút enter ở phần tử con để chặn đi enter nổi ra ngoài phần conflic với enter của flutter flow
+
+    if (e.key === "Enter") {
+      //Phải nghe nút enter ở phần tử con để chặn đi enter nổi ra ngoài phần conflic với enter của flutter flow
       addSiblingNode(selectedNode);
-      return 0
+      return 0;
     }
 
     if (e.key === "Delete" || e.key === "Backspace") {
       deleteNode(selectedNode.id);
-      return 0
+      return 0;
     }
 
-    if (e.key === 'F2') {
-      setcurrentFocusNodeId('')
-      setTimeout(() => setcurrentFocusNodeId(selectedNode.id), 0) // Force update - Tránh trường hợp currentFocusNodeId trước đó trùng với selected node id hiện tại (=>>>>>> Thật nghệ thuật)
-      return 0
+    if (e.key === "F2") {
+      setcurrentFocusNodeId("");
+      setTimeout(() => setcurrentFocusNodeId(selectedNode.id), 0); // Force update - Tránh trường hợp currentFocusNodeId trước đó trùng với selected node id hiện tại (=>>>>>> Thật nghệ thuật)
+      return 0;
     }
 
-    if(e.key === 'ArrowLeft' && !e.ctrlKey) {
-      console.log('move left')
-      moveLeft()
-      return 0
+    if (e.key === "ArrowLeft" && !e.ctrlKey) {
+      console.log("move left");
+      moveLeft();
+      return 0;
     }
-    if(e.key === 'ArrowRight' && !e.ctrlKey) {
-      console.log('move right')
-      moveRight()
-      return 0
+    if (e.key === "ArrowRight" && !e.ctrlKey) {
+      console.log("move right");
+      moveRight();
+      return 0;
     }
-    if(e.key === 'ArrowUp' && !e.ctrlKey) {
-      console.log('move up')
-      moveUp()
-      return 0
+    if (e.key === "ArrowUp" && !e.ctrlKey) {
+      console.log("move up");
+      moveUp();
+      return 0;
     }
-    if(e.key === 'ArrowDown' && !e.ctrlKey) {
-      console.log('move down')
-      moveDown()
-      return 0
-    }
-
-    if(e.ctrlKey && e.code === 'Slash') {
-      toggleCollapse(selectedNode.id)
-      return 0
+    if (e.key === "ArrowDown" && !e.ctrlKey) {
+      console.log("move down");
+      moveDown();
+      return 0;
     }
 
-    return -1
-  }
-  const {onKeyDown} = useKeyBoardManager({handler: shortCuts, deps: [nodeRef.current]})
+    if (e.ctrlKey && e.code === "Slash") {
+      toggleCollapse(selectedNode.id);
+      return 0;
+    }
+
+    return -1;
+  };
+  const { onKeyDown } = useKeyBoardManager({
+    handler: shortCuts,
+    deps: [nodeRef.current],
+  });
 
   const childNodesCount = useMemo(() => {
     function getAllChildCount(parentId: string, edges: Edge[]): number {
-      const visited = new Set<string>()
-      const stack = [parentId]
+      const visited = new Set<string>();
+      const stack = [parentId];
 
       while (stack.length > 0) {
-        const current = stack.pop()!
+        const current = stack.pop()!;
 
-        edges.forEach(edge => {
+        edges.forEach((edge) => {
           if (edge.source === current && !visited.has(edge.target)) {
-            visited.add(edge.target)
-            stack.push(edge.target)
+            visited.add(edge.target);
+            stack.push(edge.target);
           }
-        })
+        });
       }
 
-      return visited.size
+      return visited.size;
     }
 
-    return getAllChildCount(id, edges)
-  }, [nodes, edges])
+    return getAllChildCount(id, edges);
+  }, [nodes, edges]);
 
   useLayoutEffect(() => {
-    const selectedNode = nodes.find(n => n.selected)
-    if(selectedNode) {
-      setcurrentActiveNodeId(selectedNode.id)
+    const selectedNode = nodes.find((n) => n.selected);
+    if (selectedNode) {
+      setcurrentActiveNodeId(selectedNode.id);
     }
-  }, [])
+  }, []);
 
   useEffect(() => {
-    if(currentActiveNodeId !== id) return
-    nodeRef?.current?.focus()
-  }, [currentActiveNodeId])
+    if (currentActiveNodeId !== id) return;
+    nodeRef?.current?.focus();
+  }, [currentActiveNodeId]);
 
+
+  const onNodeResizeEnd = useCallback(() => {
+    setTimeout(() => {
+      useMindMapStore.getState().layout.updateLayout()
+    }, 0)
+  }, [])
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
@@ -161,21 +188,41 @@ export function TextUpdaterNode({ id, data, selected }: NodeProps) {
         // visibility: data?.isHidding ? "hidden" : "visible",
       }}
       exit={{ opacity: 0, scale: 0.9 }}
-      transition={
-        { 
-          opacity: {duration: 0.3, ease: 'easeInOut'},
-          scale: {duration: 0.3, ease: 'easeInOut'}
-        } 
-      }
-      className={`${data?.isDragging ? "dragging" : ""}`}
+      transition={{
+        opacity: { duration: 0.3, ease: "easeInOut" },
+        scale: { duration: 0.3, ease: "easeInOut" },
+      }}
+      className={`${data?.isDragging ? "dragging" : ""} h-full  group relative `}
+      
     >
-      <div ref={nodeRef} tabIndex={-1} onKeyDown={onKeyDown}>
+      {selected && (
+        <NodeResizeControl
+          minWidth={100}
+          minHeight={30}
+          onResizeEnd={onNodeResizeEnd}
+          style={{
+            background: "transparent",
+            border: "none",
+            cursor: "nwse-resize",
+            zIndex: 100
+          }}
+        >
+          <IoResizeSharp size={16}  className=" text-gray-400  opacity-0 group-hover:opacity-100 hover:text-purple-500 transition-all duration-200 hover:rotate-90 z-10" />
+        </NodeResizeControl>
+      )}
+
+      <div
+        ref={nodeRef}
+        tabIndex={-1}
+        onKeyDown={onKeyDown}
+        className="h-full m-full"
+      >
         <Handle type="target" position={Position.Left} />
         <div
           className={`
           rounded-lg relative
            hover:shadow-[0_0_15px_rgba(0,0,0,0.2)] border-4 hover:border-purple-400 
-          transition-all duration-200
+          transition-all duration-200 h-[100%] w-[100%]
 
           ${
             isRoot && selected
