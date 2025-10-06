@@ -715,7 +715,7 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
             data: { ...latestNode.data, isHidding: false },
           });
 
-        }, 300);
+        }, 320);
       };
 
       // Hàm đệ quy để ẩn/hiện con cháu
@@ -787,8 +787,6 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
         console.log({node: nodesMap.get(id)})
       },300)
 
-
-      
     },
 
     toggleCompleted: (nodeId) => {

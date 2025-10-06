@@ -1,4 +1,4 @@
-import { Handle, Position, NodeProps, Edge, NodeResizeControl  } from "@xyflow/react";
+import { Handle, Position, NodeProps, Edge, NodeResizeControl, useUpdateNodeInternals    } from "@xyflow/react";
 import { MouseEvent, useCallback, ReactNode, useRef, useMemo, useLayoutEffect, useEffect,  } from "react";
 import TextEditor from "./TextEditor";
 import useMindMapStore from "../store/useMindMapStore";
@@ -55,7 +55,7 @@ export function TextUpdaterNode({ id, data, selected }: NodeProps) {
     (event: MouseEvent) => {
       event.preventDefault();
       event.stopPropagation();
-      toggleCollapse(id);
+      toggleCollapse(id)
     },
     [id, toggleCollapse]
   );
@@ -173,12 +173,20 @@ export function TextUpdaterNode({ id, data, selected }: NodeProps) {
     nodeRef?.current?.focus();
   }, [currentActiveNodeId]);
 
+  const updateNodeInternals= useUpdateNodeInternals()
+  useLayoutEffect(() => {
+    console.log('==update node internal')
+    setTimeout(() => {
+      updateNodeInternals(id)
+    }, 300)
+  }, [data, id, updateNodeInternals])
 
   const onNodeResizeEnd = useCallback(() => {
     setTimeout(() => {
       useMindMapStore.getState().layout.updateLayout()
     }, 0)
   }, [])
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
@@ -193,7 +201,6 @@ export function TextUpdaterNode({ id, data, selected }: NodeProps) {
         scale: { duration: 0.3, ease: "easeInOut" },
       }}
       className={`${data?.isDragging ? "dragging" : ""} h-full  group relative `}
-      
     >
       {selected && (
         <NodeResizeControl
@@ -211,18 +218,19 @@ export function TextUpdaterNode({ id, data, selected }: NodeProps) {
         </NodeResizeControl>
       )}
 
+      <Handle type="target" position={Position.Left} />
       <div
         ref={nodeRef}
         tabIndex={-1}
         onKeyDown={onKeyDown}
         className="h-full m-full"
       >
-        <Handle type="target" position={Position.Left} />
+        
         <div
           className={`
           rounded-lg relative
            hover:shadow-[0_0_15px_rgba(0,0,0,0.2)] border-4 hover:border-purple-400 
-          transition-all duration-200 h-[100%] w-[100%]
+          transition-all duration-200 h-full m-full
 
           ${
             isRoot && selected
@@ -282,9 +290,9 @@ export function TextUpdaterNode({ id, data, selected }: NodeProps) {
           {/* Nội dung editor */}
           <TextEditor text={content} id={id} nodeData={data} />
         </div>
-
-        <Handle type="source" position={Position.Right} id="a" />
       </div>
+      <Handle type="source" position={Position.Right} id="a" />
+
     </motion.div>
   );
 }

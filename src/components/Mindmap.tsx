@@ -30,7 +30,6 @@ export default function MindMap () {
   const {nodes, setNodes, setcurrentActiveNodeId, currentActiveNodeId} = useMindMapStore((state) => state.node);
   const {edges, setEdges} = useMindMapStore((state) => state.edge);
   const {setCenter, getViewport } = useReactFlow()
-
   
 
   const nodeTypes: NodeTypes = useMemo(() => (
