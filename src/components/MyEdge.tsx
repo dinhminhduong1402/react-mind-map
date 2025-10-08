@@ -29,8 +29,8 @@ function MyEdge(props: EdgeProps & { isDeleting?: boolean, isHidding?: boolean ,
         !isDragging ?
         {
           d: { duration: 0.3, ease: "easeInOut" }, // animate d
-          // pathLength: { duration: 0.3, ease: "easeInOut" },
-          // opacity: { duration: 0.3, ease: "easeInOut" },
+          pathLength: { duration: 0.3, ease: "easeInOut" },
+          opacity: { duration: 0.3, ease: "easeInOut" },
         } : {d: {duration: 0}}
       }
     />

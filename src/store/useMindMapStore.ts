@@ -597,7 +597,7 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
           (childrenMap[e.source] ??= []).push(e.target);
         });
 
-        // 👉 Sort children theo thứ tự trong node.nodes
+        // Sort children theo thứ tự trong node.nodes
         Object.keys(childrenMap).forEach((pid) => {
           childrenMap[pid].sort((a, b) => {
             return (
@@ -715,7 +715,7 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
             data: { ...latestNode.data, isHidding: false },
           });
 
-        }, 320);
+        }, 300);
       };
 
       // Hàm đệ quy để ẩn/hiện con cháu
@@ -785,7 +785,7 @@ const useMindMapStore = create<MindMapState>()((set, get) => {
         // clear focus to text editor
         get().node.setcurrentFocusNodeId(""); 
         console.log({node: nodesMap.get(id)})
-      },300)
+      },350)
 
     },
 

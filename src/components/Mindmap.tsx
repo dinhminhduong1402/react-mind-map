@@ -30,7 +30,6 @@ export default function MindMap () {
   const {nodes, setNodes, setcurrentActiveNodeId, currentActiveNodeId} = useMindMapStore((state) => state.node);
   const {edges, setEdges} = useMindMapStore((state) => state.edge);
   const {setCenter, getViewport } = useReactFlow()
-  
 
   const nodeTypes: NodeTypes = useMemo(() => (
     {textUpdaterNode: TextUpdaterNode}
@@ -86,7 +85,6 @@ export default function MindMap () {
     console.log('=========on node change')
     const updatedNodes = applyNodeChanges(changes, nodes);
     setNodes(updatedNodes);
-
     const selected = updatedNodes.find(n => n.selected)
     if(selected) {
       setcurrentActiveNodeId(selected.id)

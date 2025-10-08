@@ -1,4 +1,4 @@
-import { Handle, Position, NodeProps, Edge, NodeResizeControl, useUpdateNodeInternals    } from "@xyflow/react";
+import { Handle, Position, NodeProps, Edge, NodeResizeControl } from "@xyflow/react";
 import { MouseEvent, useCallback, ReactNode, useRef, useMemo, useLayoutEffect, useEffect,  } from "react";
 import TextEditor from "./TextEditor";
 import useMindMapStore from "../store/useMindMapStore";
@@ -14,7 +14,7 @@ const icons: Record<string, ReactNode > = {
   plus: <Plus className="text-gray-500 bg-gray-100"  size={16} />,
 };
 
-export function TextUpdaterNode({ id, data, selected }: NodeProps) {
+export function TextUpdaterNode({ id, data, selected}: NodeProps) {
   const content: string = data?.content ? String(data.content) : "";
   const isRoot = id === "root";
 
@@ -173,14 +173,6 @@ export function TextUpdaterNode({ id, data, selected }: NodeProps) {
     nodeRef?.current?.focus();
   }, [currentActiveNodeId]);
 
-  const updateNodeInternals= useUpdateNodeInternals()
-  useLayoutEffect(() => {
-    console.log('==update node internal')
-    setTimeout(() => {
-      updateNodeInternals(id)
-    }, 300)
-  }, [data, id, updateNodeInternals])
-
   const onNodeResizeEnd = useCallback(() => {
     setTimeout(() => {
       useMindMapStore.getState().layout.updateLayout()
@@ -189,16 +181,13 @@ export function TextUpdaterNode({ id, data, selected }: NodeProps) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
+      initial={{ opacity: 0}}
       animate={{
         opacity: data?.isDeleting || data?.isHidding ? 0 : 1,
-        scale: data?.isDeleting || data?.isHidding ? 0.9 : 1,
-        // visibility: data?.isHidding ? "hidden" : "visible",
       }}
-      exit={{ opacity: 0, scale: 0.9 }}
+      exit={{ opacity: 0}}
       transition={{
         opacity: { duration: 0.3, ease: "easeInOut" },
-        scale: { duration: 0.3, ease: "easeInOut" },
       }}
       className={`${data?.isDragging ? "dragging" : ""} h-full  group relative `}
     >
@@ -255,7 +244,7 @@ export function TextUpdaterNode({ id, data, selected }: NodeProps) {
 
           ${
             isDeepNode && !selected
-              ? "bg-transparent border-transparent  px-2"
+              ? "bg-transparent px-2 border-2 border-gray-200"
               : ""
           }
           ${
