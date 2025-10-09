@@ -36,7 +36,6 @@ import {
 } from "@/components/ui/tooltip";
 import useMindMapStore from "@/store/useMindMapStore";
 import DonateModal from "./DonateModal";
-import { truncate } from "@/core/utils";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel } from "@/components/ui/dropdown-menu"
 import { FcGoogle } from "react-icons/fc";
 import { AccessService } from "@/services/accessService";
@@ -189,10 +188,10 @@ export default function TopBar() {
         `}
       >
         {/* Project Info */}
-        <div className=" w-[450px] overflow-hidden bg-white shadow-[0_0_15px_rgba(0,0,0,0.2)]  rounded-md ">
+        <div className="w-[450px] bg-transparent">
           <div
-            className="flex gap-5 w-[100%]
-          px-3 py-1 pointer-events-auto justify-between"
+            className="flex gap-6 overflow-hidden w-fit max-w-[100%]
+          px-3 py-1 pointer-events-auto justify-between bg-white shadow-[0_0_15px_rgba(0,0,0,0.2)]  rounded-md "
           >
             <div className="flex items-center gap-4 cursor-pointer">
               <Button
@@ -216,34 +215,31 @@ export default function TopBar() {
                   onKeyDown={(e) => e.key === "Enter" && handleTitleSave()}
                   className="text-md font-semibold border-b border-gray-400 focus:outline-none px-1 w-[calc(450px-5rem)]"
                 />
-              ) : title.length > 15 ? (
+              ) : (
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <h1
-                        className="text-md font-semibold text-gray-800 text-nowrap flex items-center gap-1 hover:text-purple-600"
+                      <div
+                        className=" flex items-center justify-center gap-1 hover:text-purple-600 text-md font-semibold text-gray-800 text-nowrap"
                         onClick={() => setEditingTitle(true)}
                       >
-                        {truncate(title, 15)}
-                        <Edit3
-                          size={14}
-                          className="opacity-60 hover:opacity-100"
-                        />
-                      </h1>
+                        
+                        <h1 className="max-w-[160px] truncate whitespace-nowrap overflow-hidden">
+                          {title}
+                        </h1>
+                        <span>
+                          <Edit3
+                            size={14}
+                            className="opacity-60 hover:opacity-100"
+                          />
+                        </span>
+                      </div>
                     </TooltipTrigger>
                     <TooltipContent side="bottom" className="text-sm">
                       {title}
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
-              ) : (
-                <h1
-                  className="text-md font-semibold text-gray-800 text-nowrap flex items-center gap-1 hover:text-purple-600"
-                  onClick={() => setEditingTitle(true)}
-                >
-                  {title}
-                  <Edit3 size={14} className="opacity-60 hover:opacity-100" />
-                </h1>
               )}
             </div>
 
@@ -252,20 +248,22 @@ export default function TopBar() {
               <div
                 // style={{ ...btnStyle, background: "green" }}
                 // variant='outline'
-                className="bg-transparent text-gray-500 border-none text-sm text-nowrap flex align-center gap-3"
+                className="bg-transparent text-gray-500 border-none text-xs text-nowrap flex align-center gap-2"
               >
-                Lastest:
                 {isSaving ? (
-                  <Loader size={18} className="animate-spin" />
+                  <Loader size={14} className="animate-spin" />
                 ) : (
                   <div className="flex gap-1 items-center">
-                    <CheckCircle size={16} />
+                    <CheckCircle size={14} />
                   </div>
                 )}
-                {new Date().toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
+                <span>Lastest: </span>
+                <span>
+                  {new Date().toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
               </div>
               {/* save button */}
               <TooltipProvider>
