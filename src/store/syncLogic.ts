@@ -10,7 +10,7 @@ export async function loadProjectToMindmap() {
   // set vào mindmap store
   if(currentProject.nodes && currentProject.edges) {
     useMindmapStore.getState().node.setNodes(currentProject.nodes);
-    useMindmapStore.getState().edge.setEdges(currentProject.edges);
+    useMindmapStore.getState().edge.setEdges(currentProject.edges.map(edge => ({...edge, type: 'myEdge'})));
   }
 }
 
